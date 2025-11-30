@@ -107,18 +107,18 @@ async function group_participants_update(data, ovl) {
       const contextInfo = { mentionedJid: mentions };
 
       if (data.action == 'add' && welcome == 'oui') {
-        if (eventSettings) await envoyerWelcomeGoodbye(data.id, participant, "welcome", eventSettings, ovl);
+        if (eventSettings) await envoyerWelcomeGoodbye(data.id, participant.phoneNumber, "welcome", eventSettings, ovl);
       }
 
       if (data.action == 'remove' && goodbye == 'oui') {
-        if (eventSettings) await envoyerWelcomeGoodbye(data.id, participant, "goodbye", eventSettings, ovl);
+        if (eventSettings) await envoyerWelcomeGoodbye(data.id, participant.phoneNumber, "goodbye", eventSettings, ovl);
       }
 
       if (data.action == 'promote' || data.action == 'demote') {
         const authorJid = await getJid(data.author, data.id, ovl);
         const ownerJid = await getJid(metadata.owner, data.id, ovl);
         const botJid = await getJid(parseID(ovl.user.id), data.id, ovl);
-        const participantJid = await getJid(participant, data.id, ovl);
+        const participantJid = await getJid(participant.phoneNumber, data.id, ovl);
         const ownerNumJid = await getJid(config.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl);
         const exemptJid1 = await getJid("22605463559@s.whatsapp.net", data.id, ovl);
         const exemptJid2 = await getJid("22651463203@s.whatsapp.net", data.id, ovl);
@@ -128,11 +128,11 @@ async function group_participants_update(data, ovl) {
         if (data.action == 'promote') {
           if (antipromote == 'oui' && isExempted) continue;
           if (antipromote == 'oui') {
-            await ovl.groupParticipantsUpdate(data.id, [participant], "demote");
+            await ovl.groupParticipantsUpdate(data.id, [participant.phoneNumber], "demote");
             await ovl.sendMessage(data.id, { text: `🚫 *Promotion refusée !*\n${actorMention} n’a pas le droit de promouvoir ${userMention}.`, mentions, contextInfo });
           } else if (promoteAlert == 'oui') {
             let pp = "https://files.catbox.moe/82g8ey.jpg";
-            try { pp = await ovl.profilePictureUrl(participant, 'image'); } catch {}
+            try { pp = await ovl.profilePictureUrl(participant.phoneNumber, 'image'); } catch {}
             await ovl.sendMessage(data.id, { image: { url: pp }, caption: `🆙 ${userMention} a été promu par ${actorMention}.`, mentions, contextInfo });
           }
         }
@@ -140,11 +140,11 @@ async function group_participants_update(data, ovl) {
         if (data.action == 'demote') {
           if (antidemote == 'oui' && isExempted) continue;
           if (antidemote == 'oui') {
-            await ovl.groupParticipantsUpdate(data.id, [participant], "promote");
+            await ovl.groupParticipantsUpdate(data.id, [participant.phoneNumber], "promote");
             await ovl.sendMessage(data.id, { text: `🚫 *Rétrogradation refusée !*\n${actorMention} ne peut pas rétrograder ${userMention}.`, mentions, contextInfo });
           } else if (demoteAlert == 'oui') {
             let pp = "https://files.catbox.moe/82g8ey.jpg";
-            try { pp = await ovl.profilePictureUrl(participant, 'image'); } catch {}
+            try { pp = await ovl.profilePictureUrl(participant.phoneNumber, 'image'); } catch {}
             await ovl.sendMessage(data.id, { image: { url: pp }, caption: `⬇️ ${userMention} a été rétrogradé par ${actorMention}.`, mentions, contextInfo });
           }
         }
