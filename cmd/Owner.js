@@ -991,7 +991,8 @@ ovlcmd(
         }, { quoted: ms });
       }
 
-      const numero = arg[0].trim();
+      const number = arg.join(" ");
+      const numero = number.replace(/[^0-9]/g,'');
       const result = await deleteSecondSession(numero);
 
       if (result === 0) {
