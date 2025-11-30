@@ -667,7 +667,7 @@ ovlcmd(
                     pack: config.STICKER_PACK_NAME,
                     author: config.STICKER_AUTHOR_NAME,
                     type: StickerTypes.FULL,
-                    quality: 40
+                    quality: 10
                 });
 
                 await ovl.sendMessage(ms_org, {
