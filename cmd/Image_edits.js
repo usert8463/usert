@@ -4,11 +4,13 @@ const canvacord = require("canvacord");
 const axios = require("axios");
 
 async function telechargerImage(url) {
+  console.log("[LOG] Téléchargement de l'image :", url);
   try {
     const response = await axios.get(url, { responseType: "arraybuffer" });
+    console.log("[LOG] Téléchargement réussi :", url);
     return Buffer.from(response.data, "binary");
   } catch (error) {
-    console.error("Erreur lors du téléchargement de l'image:", error);
+    console.error("[ERROR] Impossible de télécharger l'image :", url, error.message);
     throw new Error("Impossible de télécharger l'image.");
   }
 }
@@ -23,32 +25,44 @@ function genererCommandeCanvacord(nomCommande, effet) {
     },
     async (ms_org, ovl, options) => {
       const { arg, ms, getJid, auteur_Msg_Repondu, msg_Repondu, auteur_Message } = options;
+      console.log(`[LOG] Commande appelée : ${nomCommande}`);
 
       try {
         let imageBuffer;
         const cbl =
           auteur_Msg_Repondu ||
-          (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteur_Message;
+          (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) ||
+          auteur_Message;
 
         const cible = await getJid(cbl, ms_org, ovl);
+        console.log("[LOG] JID cible :", cible);
+
         if (msg_Repondu?.imageMessage) {
+          console.log("[LOG] Lecture de l'image répondue");
           const cheminFichier = await ovl.dl_save_media_ms(msg_Repondu.imageMessage);
-          imageBuffer = fs.readFileSync(cheminFichier); // 🔥 Lire le fichier en Buffer
+          imageBuffer = fs.readFileSync(cheminFichier);
+          console.log("[LOG] Image lue depuis fichier :", cheminFichier);
         } else if (cible) {
           try {
+            console.log("[LOG] Tentative de récupération de la photo de profil");
             imageBuffer = await telechargerImage(await ovl.profilePictureUrl(cible, "image"));
           } catch {
+            console.warn("[WARN] Photo de profil inaccessible, image par défaut utilisée");
             imageBuffer = await telechargerImage("https://files.catbox.moe/ulwqtr.jpg");
           }
         } else {
+          console.log("[LOG] Pas de cible, image par défaut utilisée");
           imageBuffer = await telechargerImage("https://files.catbox.moe/ulwqtr.jpg");
         }
 
+        console.log("[LOG] Application de l'effet :", nomCommande);
         const resultat = await effet(imageBuffer);
+        console.log("[LOG] Effet appliqué avec succès :", nomCommande);
 
         await ovl.sendMessage(ms_org, { image: resultat }, { quoted: ms });
+        console.log("[LOG] Message envoyé avec succès pour :", nomCommande);
       } catch (error) {
-        console.error(`Erreur avec la commande "${nomCommande}":`, error);
+        console.error(`[ERROR] Erreur avec la commande "${nomCommande}":`, error);
       }
     }
   );
@@ -79,7 +93,6 @@ const effetsCanvacord = {
   filters: (img) => canvacord.canvacord.filters(img),
   fuse: (img) => canvacord.canvacord.fuse(img),
 };
-
 
 Object.entries(effetsCanvacord).forEach(([nom, effet]) =>
   genererCommandeCanvacord(nom, effet)
