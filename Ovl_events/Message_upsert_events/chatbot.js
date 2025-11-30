@@ -1,6 +1,15 @@
 const axios = require('axios');
 const { ChatbotConf } = require('../../DataBase/chatbot');
 
+const apiKeys = [
+  "AIzaSyAk9Mtmnk8SuuCf7T9z8Hkw5dPxiAMVc8U",
+  "AIzaSyDwi6VPfi8tohHPchmHYmjOYUP0edQfg-0",
+  "AIzaSyB0ur58fMSEReiARhU6KrcHyzWQxH3xe-Y",
+  "AIzaSyDmMxQt4xU3OIh0HPZueGy59LuovzGpoKQ",
+  "AIzaSyCXgP_SvfItKImfa-fgLOACaVa3SW7BjZc",
+  "AIzaSyBMn6UPbNwmAnVQjO3iwtvhO3A-Y3VaPBk"
+];
+
 async function chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot, auteur_Msg_Repondu, auteur_Message) {
   try {
     if (verif_Groupe) {
@@ -36,37 +45,49 @@ Voici le message de l'utilisateur :`;
 
     const fullText = `${promptSystem}\n"${texte}"`;
 
-    const response = await axios.post(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyAk9Mtmnk8SuuCf7T9z8Hkw5dPxiAMVc8U',
-      {
-        contents: [
+    let finalResponse = null;
+
+    // 🔥 Test API keys 1 par 1
+    for (const key of apiKeys) {
+      try {
+        const response = await axios.post(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
           {
-            parts: [{ text: fullText }],
+            contents: [
+              {
+                parts: [{ text: fullText }],
+              },
+            ],
           },
-        ],
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+          {
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+
+        const data = response.data;
+
+        if (data.candidates && data.candidates.length > 0) {
+          let reponseTexte = data.candidates[0]?.content?.parts?.[0]?.text || "";
+
+          reponseTexte = reponseTexte
+            .replace(/Google/gi, 'AINZ')
+            .replace(/un grand modèle linguistique/gi, 'OVL-CHAT-BOT');
+
+          finalResponse = reponseTexte;
+          break;
+        }
+      } catch (err) {
+        console.log(`❌ API key invalide ou limitée : ${key}`);
+        continue; // On essaie la clé suivante
       }
-    );
-
-    const data = response.data;
-
-    if (data.candidates && data.candidates.length > 0) {
-      let reponseTexte = data.candidates[0]?.content?.parts?.[0]?.text || "";
-
-      reponseTexte = reponseTexte
-        .replace(/Google/gi, 'AINZ')
-        .replace(/un grand modèle linguistique/gi, 'OVL-CHAT-BOT');
-
-      if (reponseTexte) {
-        repondre(reponseTexte);
-      }
-    } else {
-      repondre("Aucune réponse adaptée de l'API.");
     }
+
+    if (finalResponse) {
+      return repondre(finalResponse);
+    }
+
+    repondre("❌ Toutes les clés API ont échoué. Aucune réponse possible.");
+
   } catch (err) {
     console.error("Erreur dans chatbot :", err);
   }
