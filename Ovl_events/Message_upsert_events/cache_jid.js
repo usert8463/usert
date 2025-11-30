@@ -31,7 +31,6 @@ async function getJid(lid, ms_org, ovl, attempt = 0) {
     if (!participant) return null;
 
     const jid = participant.phoneNumber;
-     console.log(participant);
     cache[lid] = jid;
     writeCache(cache);
 
