@@ -17,7 +17,7 @@
     "@whiskeysockets/baileys": "npm:ovl-baileys@2.0.0",
     "adm-zip": "^0.5.16",
     "axios": "^1.8.4",
-    "canvacord": "^6.0.2",
+    "canvacord": "^6.0.4",
     "cheerio": "^1.1.0",
     "cookie": "^1.0.2",
     "dotenv": "^17.2.1",
