@@ -2,7 +2,6 @@ const axios = require('axios');
 const { ChatbotConf } = require('../../DataBase/chatbot');
 
 const apiKeys = [
-  "AIzaSyAk9Mtmnk8SuuCf7T9z8Hkw5dPxiAMVc8U",
   "AIzaSyDwi6VPfi8tohHPchmHYmjOYUP0edQfg-0",
   "AIzaSyB0ur58fMSEReiARhU6KrcHyzWQxH3xe-Y",
   "AIzaSyDmMxQt4xU3OIh0HPZueGy59LuovzGpoKQ",
