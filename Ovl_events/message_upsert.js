@@ -42,7 +42,7 @@ async function message_upsert(m, ovl) {
     const ms = m.messages?.[0];
     if (!ms?.message) return;
     addMessage(ms.key.id, ms);
-console.log(ms.key);
+    
     const mtype = getContentType(ms.message);
     const texte = {
       conversation: ms.message.conversation,
@@ -133,13 +133,15 @@ console.log(ms.key);
         c.nom_cmd === cd.nom_cmd || cd.alias?.includes(c.nom_cmd)
       );
 
+      if (!ms_org.endsWith("@newsletter")) {
       if (config.MODE !== 'public' && !prenium_id && !isPublicCmd) return;
       if (config.MODE === 'public' && !prenium_id && isPrivateCmd) return;
       if ((!dev_id && auteur_Message !== '221772430620@s.whatsapp.net') && ms_org === "120363314687943170@g.us") return;
       if (!prenium_id && await isBanned('user', auteur_Message)) return;
       if (!prenium_id && verif_Groupe && await isBanned('group', ms_org)) return;
       if (!verif_Admin && verif_Groupe && await OnlyAdmins.findOne({ where: { id: ms_org } })) return;
-
+      }
+      
       if (!isStickerCmd) {
         await ovl.sendMessage(ms_org, { react: { text: cd.react || "🎐", key: ms.key } });
       }
