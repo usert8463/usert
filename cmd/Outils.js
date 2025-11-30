@@ -767,9 +767,7 @@ ovlcmd(
       const url = arg[0];
 
     try {
-      const screenshot = await axios.get(`https://api.kenshiro.cfd/api/tools/ssweb?url=${encodeURIComponent(url)}&type=mobile&mode=dark`, {
-        responseType: 'arraybuffer',
-      }); 
+      const screenshot = await axios.get(`https://eliteprotech-apis.zone.id/ssweb?url=${encodeURIComponent(url)}`);
 
       await ovl.sendMessage(ms_org, {
         image:  screenshot.data, 
@@ -1136,7 +1134,7 @@ ovlcmd(
 ╭───⟪ 📦 OVL-MD-V2 ⟫───╮
 │ ⇨ ⭐ Stars       : ${data.stargazers_count}
 │ ⇨ 🍴 Forks       : ${data.forks_count}
-│ ⇨ 🔄 Dernière MAJ : ${new Date(data.updated_at).toLocaleDateString("fr-FR")}
+│ ⇨ 🔄 Dernière MAJ : ${new Date(data.pushed_at).toLocaleDateString("fr-FR")}
 │ ⇨ 🔗 Repo        : ${data.html_url}
 ╰───────────────────╯
 > ©2025 ᴏᴠʟ-ᴍᴅ-ᴠ2 ʙʏ *ᴀɪɴᴢ*`;
