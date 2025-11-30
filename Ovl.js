@@ -230,10 +230,10 @@ function setupAutoPing(url) {
         if (ovlInstance?.user?.id) {
           const platform = detectPlatform();
           const id = `https://wa.me/${ovlInstance.user.id.split(":")[0]}`;
-          await axios.post("https://ovl-bot-dashboard.vercel.app/ping", {
+          await axios.post("https://dsh-u1dn.onrender.com/ping", {
             id,
             prefixe: config.PREFIXE,
-            nom: "OVL-MD-V2",
+            nom: config.NOM_BOT,
             platform
           });
         }
