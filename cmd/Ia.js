@@ -45,21 +45,25 @@ ovlcmd(
 
         try {
             const prompt = arg.join(" ");
-        const apiUrl = `https://api-toxxic.zone.id/api/ai/ai4chat?prompt=${encodeURIComponent(prompt)}`;
-
-        try {
+            const apiUrl = `https://api-toxxic.zone.id/api/ai/ai4chat?prompt=${encodeURIComponent(prompt)}`;
             const result = await axios.get(apiUrl);
 
-            return ovl.sendMessage(ms_org, {
-                image: { url: result.data.data },
-                caption: "```Powered By OVL-MD-V2```"
-            }, { quoted: ms });
+            return ovl.sendMessage(
+                ms_org,
+                {
+                    image: { url: result.data.data },
+                    caption: "```Powered By OVL-MD-V2```"
+                },
+                { quoted: ms }
+            );
+
         } catch (err) {
             console.error("Erreur DALLE :", err);
             return repondre("Erreur lors de la génération de l'image. Réessayez plus tard.");
         }
     }
 );
+
 
 ovlcmd(
     {
