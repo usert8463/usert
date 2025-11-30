@@ -228,31 +228,31 @@ ovlcmd(
         }
     }
 );
-
+*/
 ovlcmd(
     {
-        nom_cmd: "groq",
+        nom_cmd: "gemini",
         classe: "IA",
         react: "🤖",
-        desc: "Faites appel à l'API Groq pour obtenir des réponses."
+        desc: "Utilise l'API Gemini-Pro pour générer des réponses."
     },
     async (ms_org, ovl, cmd_options) => {
-        const { arg, repondre } = cmd_options;
+        const { arg, ms, repondre, auteur_Message } = cmd_options;
 
         if (!arg.length) {
             return repondre("Veuillez entrer un prompt pour générer une réponse.");
         }
 
         const prompt = arg.join(" ");
-        const apiUrl = `https://api.kenshiro.cfd/api/ai/groq?text=${encodeURIComponent(prompt)}`;
+        const apiUrl = `https://fgsi.dpdns.org/api/ai/xai-grok?apikey=fgsiapi-1e8a0e22-6d&text=${encodeURIComponent(prompt)}&conversationId=${auteur_Message}`;
 
         try {
             const result = await axios.get(apiUrl);
-            const responseText = result.data?.data?.response || "Erreur de réponse de l\'API Groq.";
+            const responseText = result.data?.data.answer || "Erreur de réponse de l\'API Gemini-Pro.";
             return repondre(responseText);
         } catch (error) {
-            console.error("Erreur Groq :", error);
+            console.error("Erreur Gemini-Pro :", error);
             return repondre("Une erreur est survenue lors de l\'appel à l\'API.");
         }
     }
-);*/
+);
