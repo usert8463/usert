@@ -67,7 +67,7 @@ console.log(ms.key);
     const verif_Ovl_Admin = verif_Groupe && groupe_Admin.includes(id_Bot);
 
     const auteur_Message = verif_Groupe
-      ? await getJid(decodeJid(ms.key.participantAlt), ms_org, ovl)
+      ? await getJid(decodeJid(ms.key.participantAlt || ms.key.participant), ms_org, ovl)
       : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJid);
 
     const msg_Repondu = ms.message?.[mtype]?.contextInfo?.quotedMessage;
