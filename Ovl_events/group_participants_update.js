@@ -88,7 +88,6 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
 }
 
 async function group_participants_update(data, ovl) {
-  console.log(data);
   try {
     const groupInfo = await ovl.groupMetadata(data.id);
     const metadata = groupInfo;
@@ -102,10 +101,9 @@ async function group_participants_update(data, ovl) {
 
     for (const participant of data.participants) {
       const actor = data.author;
-      console.log(actor);
       const actorMention = actor ? `@${actor.split("@")[0]}` : "quelqu’un";
-      const userMention = `@${participant.split("@")[0]}`;
-      const mentions = actor ? [participant, actor] : [participant];
+      const userMention = `@${participant.phoneNumber.split("@")[0]}`;
+      const mentions = actor ? [participant.phoneNumber, actor] : [participant.phoneNumber];
       const contextInfo = { mentionedJid: mentions };
 
       if (data.action == 'add' && welcome == 'oui') {
