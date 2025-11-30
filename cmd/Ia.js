@@ -235,10 +235,10 @@ ovlcmd(
 */
 ovlcmd(
     {
-        nom_cmd: "gemini",
+        nom_cmd: "groq",
         classe: "IA",
         react: "🤖",
-        desc: "Utilise l'API Gemini-Pro pour générer des réponses."
+        desc: "Utilise l'API groq pour générer des réponses."
     },
     async (ms_org, ovl, cmd_options) => {
         const { arg, ms, repondre, auteur_Message } = cmd_options;
@@ -252,10 +252,10 @@ ovlcmd(
 
         try {
             const result = await axios.get(apiUrl);
-            const responseText = result.data?.data.answer || "Erreur de réponse de l\'API Gemini-Pro.";
+            const responseText = result.data?.data.answer || "Erreur de répone.";
             return repondre(responseText);
         } catch (error) {
-            console.error("Erreur Gemini-Pro :", error);
+            console.error("Erreur groq :", error);
             return repondre("Une erreur est survenue lors de l\'appel à l\'API.");
         }
     }
