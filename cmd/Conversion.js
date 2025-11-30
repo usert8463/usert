@@ -755,7 +755,10 @@ ovlcmd(
           "-i", inputWebp,
           "-movflags", "faststart",
           "-pix_fmt", "yuv420p",
-          "-vf", "scale=720:720:force_original_aspect_ratio=decrease",
+          "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+          "-c:v", "libx264",
+          "-r", "20",
+          "-y",
           outputMp4
         ]);
 
