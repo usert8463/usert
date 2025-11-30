@@ -268,13 +268,13 @@ ovlcmd(
     if (!verif_Groupe) return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });
     if (prenium_id || verif_Admin) {
     const membres = await infos_Groupe.participants;
-    const admins = membres.filter((m) => m.admin).map((m) => m.jid);
+    const admins = membres.filter((m) => m.admin).map((m) => m.phoneNumber);
     const cbl = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
     const membre = await getJid(cbl, ms_org, ovl);
         if (!verif_Ovl_Admin)
       return ovl.sendMessage(ms_org, { text: "Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
 
-     if (!membre || !membres.find((m) => m.jid === membre))
+     if (!membre || !membres.find((m) => m.phoneNumber === membre))
       return ovl.sendMessage(ms_org, { text: "Membre introuvable dans ce groupe." }, { quoted: ms });
     if (admins.includes(membre))
       return ovl.sendMessage(ms_org, { text: "Impossible d'exclure un administrateur du groupe." }, { quoted: ms });
@@ -307,8 +307,8 @@ ovlcmd(
       return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });
 
     const membres = infos_Groupe.participants;
-    let createur = membres.find(m => m.admin === "superadmin")?.jid;
-    if (!createur) createur = membres[0]?.jid;
+    let createur = membres.find(m => m.admin === "superadmin")?.phoneNumber;
+    if (!createur) createur = membres[0]?.phoneNumber;
 
     if (![createur, id_Bot, ...dev_num].includes(auteur_Message))
       return ovl.sendMessage(ms_org, { text: "Seul le créateur du groupe ou le propriétaire du bot peut utiliser cette commande." }, { quoted: ms });
@@ -320,7 +320,7 @@ ovlcmd(
     if (settings?.goodbye === "oui")
       return ovl.sendMessage(ms_org, { text: "Désactivez le goodbye message (goodbye off) avant de continuer." }, { quoted: ms });
 
-    const nonAdmins = membres.filter(m => !m.admin && !dev_num.includes(m.jid)).map(m => m.jid);
+    const nonAdmins = membres.filter(m => !m.admin && !dev_num.includes(m.phoneNumber)).map(m => m.phoneNumber);
     if (nonAdmins.length === 0)
       return ovl.sendMessage(ms_org, { text: "Aucun membre non administrateur à exclure." }, { quoted: ms });
 
@@ -368,8 +368,8 @@ ovlcmd(
       return ovl.sendMessage(ms_org, { text: "❌ Commande utilisable uniquement dans les groupes." }, { quoted: ms });
 
     const membres = infos_Groupe.participants;
-    let superAdmin = membres.find(m => m.admin === "superadmin")?.jid;
-    if (!superAdmin) superAdmin = membres[0]?.jid;
+    let superAdmin = membres.find(m => m.admin === "superadmin")?.phoneNumber;
+    if (!superAdmin) superAdmin = membres[0]?.phoneNumber;
 
     if (![superAdmin, id_Bot, ...dev_num].includes(auteur_Message))
       return ovl.sendMessage(ms_org, { text: "❌ Seul le superadmin, le créateur du groupe, le créateur du bot ou un dev peut utiliser cette commande." }, { quoted: ms });
@@ -382,8 +382,8 @@ ovlcmd(
       return ovl.sendMessage(ms_org, { text: "❗ Désactivez d’abord le message de départ (goodbye off).", quoted: ms });
       
     const nonAdmins = membres
-      .filter(m => !m.admin && !dev_num.includes(m.jid))
-      .map(m => m.jid);
+      .filter(m => !m.admin && !dev_num.includes(m.phoneNumber))
+      .map(m => m.phoneNumber);
 
     if (nonAdmins.length === 0)
       return ovl.sendMessage(ms_org, { text: "✅ Aucun membre non administrateur à exclure." }, { quoted: ms });
@@ -415,8 +415,8 @@ ovlcmd(
       return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });
 
     const membres = infos_Groupe.participants;
-    let superAdmin = membres.find(m => m.admin === "superadmin")?.jid;
-    if (!superAdmin) superAdmin = membres[0]?.jid;
+    let superAdmin = membres.find(m => m.admin === "superadmin")?.phoneNumber;
+    if (!superAdmin) superAdmin = membres[0]?.phoneNumber;
 
     if (![superAdmin, id_Bot, ...dev_num].includes(auteur_Message))
       return ovl.sendMessage(ms_org, { text: "❌ Seul le superadmin, le créateur du groupe, le créateur du bot ou un dev peut utiliser cette commande." }, { quoted: ms });
@@ -433,8 +433,8 @@ ovlcmd(
 
     const indicatif = arg[0];
     const membresToKick = membres
-      .filter(m => m.jid.startsWith(indicatif) && !m.admin && !dev_num.includes(m.jid))
-      .map(m => m.jid);
+      .filter(m => m.phoneNumber.startsWith(indicatif) && !m.admin && !dev_num.includes(m.phoneNumber))
+      .map(m => m.phoneNumber);
 
     if (membresToKick.length === 0)
       return ovl.sendMessage(ms_org, { text: `Aucun membre non admin avec l'indicatif ${indicatif}.` }, { quoted: ms });
@@ -464,13 +464,13 @@ ovlcmd(
     if (!verif_Groupe) return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });
     if (verif_Admin || prenium_id) {
     const membres = await infos_Groupe.participants;
-    const admins = membres.filter((m) => m.admin).map((m) => m.jid);
+    const admins = membres.filter((m) => m.admin).map((m) => m.phoneNumber);
     const cbl = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
     const membre = await getJid(cbl, ms_org, ovl);
     if (!verif_Ovl_Admin)
       return ovl.sendMessage(ms_org, { text: "Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
     if (!membre) return ovl.sendMessage(ms_org, { text: "Veuillez mentionner un membre à promouvoir." }, { quoted: ms });
-    if (!membres.find((m) => m.jid === membre))
+    if (!membres.find((m) => m.phoneNumber === membre))
       return ovl.sendMessage(ms_org, { text: "Membre introuvable dans ce groupe." }, { quoted: ms });
     if (admins.includes(membre))
       return ovl.sendMessage(ms_org, { text: "ce membre est déjà un administrateur du groupe." }, { quoted: ms });
@@ -499,13 +499,13 @@ ovlcmd(
     if (!verif_Groupe) return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });
     if (verif_Admin || prenium_id) { 
     const membres = await infos_Groupe.participants;
-    const admins = membres.filter((m) => m.admin).map((m) => m.jid);
+    const admins = membres.filter((m) => m.admin).map((m) => m.phoneNumber);
     const cbl = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
     const membre = await getJid(cbl, ms_org, ovl);
     if (!verif_Ovl_Admin)
       return ovl.sendMessage(ms_org, { text: "Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
     if (!membre) return ovl.sendMessage(ms_org, { text: "Veuillez mentionner un membre à rétrograder." }, { quoted: ms });
-    if (!membres.find((m) => m.jid === membre))
+    if (!membres.find((m) => m.phoneNumber === membre))
       return ovl.sendMessage(ms_org, { text: "Membre introuvable dans ce groupe." });
     if (!admins.includes(membre))
       return ovl.sendMessage(ms_org, { text: "ce membre n'est pas un administrateur du groupe." }, { quoted: ms });
@@ -799,7 +799,7 @@ async function gererDemandesIndividuellement(jid, action, ovl, cmd_options) {
     if (!demandes || demandes.length === 0)
       return ovl.sendMessage(jid, { text: "ℹ️ Aucune demande en attente." }, { quoted: ms });
 
-    const utilisateurs = demandes.map(d => d.jid);
+    const utilisateurs = demandes.map(d => d.phoneNumber);
     let success = 0;
 
     for (const membre of utilisateurs) {
@@ -940,7 +940,7 @@ ovlcmd(
       return repondre("Commande utilisable uniquement dans les groupes.");
 
     const membres = await infos_Groupe.participants;
-    const admins = membres.filter((m) => m.admin).map((m) => m.jid);
+    const admins = membres.filter((m) => m.admin).map((m) => m.phoneNumber);
 
     if (!arg[0] && !auteur_Msg_Repondu)
       return repondre(
@@ -1039,7 +1039,7 @@ ovlcmd(
       const vcfData = [];
 
       for (const participant of participants) {
-        const jid = participant.jid;
+        const jid = participant.phoneNumber;
         const number = jid.split("@")[0];
 
         let name = number;
