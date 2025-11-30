@@ -57,6 +57,7 @@ async function message_upsert(m, ovl) {
 
     const ms_org = ms.key.remoteJid;
     const id_Bot = decodeJid(ovl.user.id);
+    console.log(id_Bot);
     const id_Bot_N = id_Bot.split('@')[0];
 
     const verif_Groupe = ms_org.endsWith("@g.us");
