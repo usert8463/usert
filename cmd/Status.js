@@ -220,7 +220,7 @@ ovlcmd(
         return repondre("👍 Les likes automatiques ont été *désactivés*.");
       }
         
-      const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})$/u;
+      const emojiRegex = /^(?:\p{Emoji}(?:\p{Emoji_Modifier}?|\uFE0F)?(?:\u200D\p{Emoji})*)$/u;
       if (!emojiRegex.test(sousCommande)) {
         return afficherAide();
       }
