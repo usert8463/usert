@@ -110,7 +110,7 @@ ovlcmd(
         pack: config.STICKER_PACK_NAME,
         author: config.STICKER_AUTHOR_NAME,
         type: StickerTypes.FULL,
-        quality: msg_Repondu.imageMessage ? 100 : 40
+        quality: msg_Repondu.imageMessage ? 100 : 10
       });
 
       const stickerFileName = `${Math.floor(Math.random() * 10000)}.webp`;
@@ -170,7 +170,7 @@ ovlcmd(
         pack: config.STICKER_PACK_NAME,
         author: config.STICKER_AUTHOR_NAME,
         type: StickerTypes.CROPPED,
-        quality: 100,
+        quality: msg_Repondu.imageMessage ? 100 : 10
       });
 
       const stickerFileName = `${Math.floor(Math.random() * 10000)}.webp`;
@@ -230,7 +230,7 @@ ovlcmd(
         pack: config.STICKER_PACK_NAME,
         author: config.STICKER_AUTHOR_NAME,
         type: StickerTypes.CIRCLE,
-        quality: 100,
+        quality: msg_Repondu.imageMessage ? 100 : 10
       });
 
       const stickerFileName = `${Math.floor(Math.random() * 10000)}.webp`;
@@ -290,7 +290,7 @@ ovlcmd(
         pack: config.STICKER_PACK_NAME,
         author: config.STICKER_AUTHOR_NAME,
         type: StickerTypes.ROUNDED,
-        quality: 100,
+        quality: msg_Repondu.imageMessage ? 100 : 10
       });
 
       const stickerFileName = `${Math.floor(Math.random() * 10000)}.webp`;
@@ -329,7 +329,7 @@ ovlcmd(
       
       try {
         const stickerBuffer = await ovl.dl_save_media_ms(msg_Repondu.stickerMessage);
-        const originalQuality = msg_Repondu.stickerMessage.quality || 70;
+        const originalQuality = msg_Repondu.stickerMessage.quality || 40;
 	const sticker = new Sticker(stickerBuffer, {
           pack: arg.join(' ') ? arg.join(' '): nom_Auteur_Message,
           author: "",
@@ -749,18 +749,20 @@ async function convertWebpToMp4({ file, filename, url }) {
   if (!redir) throw new Error("Redirection introuvable.");
 
   const id = redir.split("/").pop();
+
   const convRes = await axios.post(`${redir}?ajax=true`, new URLSearchParams({ file: id }), {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
   });
 
   const html = convRes.data.toString();
-  const start = "\" controls><source src=\"";
-  const end = "\" type=\"video/mp4\">Your browser";
-  const mp4 = html.split(start)?.[1]?.split(end)?.[0];
+ 
+  const match = html.match(/<source src="([^"]+)" type="video\/mp4">/i);
 
-  if (!mp4) throw new Error("Conversion échouée.");
+  if (!match || !match[1]) {
+    throw new Error("Conversion échouée.");
+  }
 
-  return "https:" + mp4.replace("https:", "");
+  return match[1].startsWith("http") ? match[1] : "https:" + match[1];
 }
 
 ovlcmd(
