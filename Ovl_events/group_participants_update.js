@@ -99,9 +99,9 @@ async function group_participants_update(data, ovl) {
     const promoteAlert = eventSettings?.promoteAlert || 'non';
     const demoteAlert = eventSettings?.demoteAlert || 'non';
 
-    for (const participant of data.participants) {
-      console.log(participant);
+    for (const participant of data.participants.phoneNumber) {
       const actor = data.author;
+      console.log(actor);
       const actorMention = actor ? `@${actor.split("@")[0]}` : "quelqu’un";
       const userMention = `@${participant.split("@")[0]}`;
       const mentions = actor ? [participant, actor] : [participant];
