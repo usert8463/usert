@@ -755,27 +755,26 @@ ovlcmd(
     react: "📸",
     desc: "Prend une capture d'écran d'un site web.",
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, prefixe, ms } = cmd_options;
-
+  async (ms_org, ovl, { arg, ms }) => {
     if (!arg[0]) {
-      return ovl.sendMessage(ms_org, {
-        text: `Entrez un lien`,
-      }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: `Entrez un lien` }, { quoted: ms });
     }
 
-      const url = arg[0];
+    const url = arg[0];
 
     try {
-      const screenshot = await axios.get(`https://eliteprotech-apis.zone.id/ssweb?url=${encodeURIComponent(url)}`);
+      const screenshot = await axios.get(
+        `https://eliteprotech-apis.zone.id/ssweb?url=${encodeURIComponent(url)}`,
+        { responseType: 'arraybuffer' }
+      );
 
       await ovl.sendMessage(ms_org, {
-        image:  screenshot.data, 
+        image: screenshot.data,
         caption: `Voici la capture d'écran de: ${url}`,
       }, { quoted: ms });
     } catch (error) {
-      console.error('Erreur lors de la capture de l\'écran:', error.message); // Log pour l'erreur générale
-      return ovl.sendMessage(ms_org, {
+      console.error('Erreur lors de la capture de l\'écran:', error.message);
+      await ovl.sendMessage(ms_org, {
         text: "Une erreur est survenue lors de la capture du site. Veuillez réessayer plus tard.",
       }, { quoted: ms });
     }
