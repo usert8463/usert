@@ -17,7 +17,7 @@
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "adm-zip": "^0.5.16",
     "axios": "^1.8.4",
-    "canvacord": "^6.0.4",
+    "canvacord": "^5.4.8",
     "cheerio": "^1.1.0",
     "cookie": "^1.0.2",
     "dotenv": "^17.2.1",
