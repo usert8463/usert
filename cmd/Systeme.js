@@ -199,7 +199,7 @@ ovlcmd(
       await git.pull("origin", "main");
 
       await repondre("✅ Mise à jour réussie ! Redémarrage...");
-      exec("pm2 restart all", (err) => {
+      exec("pm2 restart ovl", (err) => {
         if (err) {
           console.error("❌ Erreur PM2 :", err);
         } else {
