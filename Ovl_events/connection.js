@@ -56,10 +56,6 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 
             await delay(5000);
 
-            while (!ovl.user?.id) {
-                await delay(1000);
-            }
-
             await ovl.sendMessage(ovl.user.id, {
                 text: start_msg,
                 contextInfo: {
@@ -67,7 +63,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363371282577847@newsletter',
-                        newsletterName: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸'
+                        newsletterName: 'OVL-MD-V2'
                     }
                 }
             });
