@@ -1020,7 +1020,7 @@ ovlcmd(
           '-y',
           '-i', audioPath,
           '-f', 'lavfi',
-          '-i', 'color=c=black:s=640x360:d=0.1',
+          '-i', 'color=c=black:s=640x360',
           '-c:v', 'libx264',
           '-pix_fmt', 'yuv420p',
           '-c:a', 'aac',
