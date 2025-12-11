@@ -490,7 +490,7 @@ async (ms_org, ovl, { msg_Repondu, ms, repondre }) => {
     const ytUrl = info.yts[0].url || "Aucun lien trouvé";
       
     const caption =
-`╭━━━〔 🎧 *OVL • SHAZAM* 〕━━━╮
+`╭━━〔 🎧 *OVL • SHAZAM* 〕━━╮
 
 🎵 *Titre* : ${title}
 👤 *Artiste* : ${artist}
@@ -501,7 +501,7 @@ async (ms_org, ovl, { msg_Repondu, ms, repondre }) => {
 🌐 *YouTube* :
 ${ytUrl}
 
-╰━━━━━━━━━━━━━━━━━━━━╯`;
+╰━━━━━━━━━━━━━━━━━━╯`;
 
     await ovl.sendMessage(ms_org, { text: caption }, { quoted: ms });
 
