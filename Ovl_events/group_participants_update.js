@@ -1,6 +1,7 @@
 const { GroupSettings, Events2 } = require("../DataBase/events");
 const { jidDecode } = require("@whiskeysockets/baileys");
 const { getJid } = require('./Message_upsert_events');
+const { groupCache } = require('./lib/groupeCache');
 const config = require("../set");
 
 const parseID = (jid) => {
@@ -90,6 +91,7 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
 async function group_participants_update(data, ovl) {
   try {
     const groupInfo = await ovl.groupMetadata(data.id);
+    groupCache.set(data.id, groupInfo);
     const metadata = groupInfo;
     const settings = await GroupSettings.findOne({ where: { id: data.id } });
     const eventSettings = await Events2.findOne({ where: { id: data.id } });
