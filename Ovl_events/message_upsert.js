@@ -42,7 +42,6 @@ async function message_upsert(m, ovl) {
     const ms = m.messages?.[0];
     if (!ms?.message) return;
     addMessage(ms.key.id, ms);
-    console.log(ms.key);
     const mtype = getContentType(ms.message);
     const texte = {
       conversation: ms.message.conversation,
@@ -55,7 +54,7 @@ async function message_upsert(m, ovl) {
         ms.message.listResponseMessage?.singleSelectReply?.selectedRowId || ms.text
     }[mtype] || "";
 
-    const ms_org = ms.key.remoteJid;
+    const ms_org = ms.key.remoteJidAlt || ms.key.remoteJid;
     const id_Bot = decodeJid(ovl.user.id);
     const id_Bot_N = id_Bot.split('@')[0];
 
@@ -68,7 +67,7 @@ async function message_upsert(m, ovl) {
 
     const auteur_Message = verif_Groupe
       ? await getJid(decodeJid(ms.key.participantAlt || ms.key.participant), ms_org, ovl)
-      : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJid);
+      : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJidAlt || ms.key.remoteJid);
 
     const msg_Repondu = ms.message?.[mtype]?.contextInfo?.quotedMessage;
     const quote = ms.message?.[mtype]?.contextInfo;
