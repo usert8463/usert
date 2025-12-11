@@ -20,7 +20,7 @@ async function mention(ovl, jid, ms, mtype, verif_Groupe, id_Bot, repondre, ment
               if (!url) return repondre(text || "Aucun contenu audio défini.");
               ovl.sendMessage(jid, {
                 audio: { url },
-                mimetype: "audio/mp4",
+                mimetype: "audio/mpeg",
                 ptt: true,
               }, { quoted: ms });
               break;
