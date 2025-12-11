@@ -746,18 +746,25 @@ async function convertWebpToMp4({ file, filename, url }) {
       headers: form.getHeaders(),
     });
 
-    const redir = uploadRes?.request?.res?.responseUrl;
-    if (!redir) throw new Error("Redirection introuvable.");
+    const redirOriginal = uploadRes?.request?.res?.responseUrl;
+    if (!redirOriginal) throw new Error("Redirection introuvable.");
 
-    const id = redir.split("/").pop();
+    const redirClean = redirOriginal.replace(/\.html$/, "");
+    const id = redirClean.split("/").pop();
+
     const convRes = await axios.post(
-      `${redir}?ajax=true`,
-      new URLSearchParams({ file: id }),
+      `${redirClean}?ajax=true`,
+      new URLSearchParams({
+        file: id,
+        background: "#ffffff",
+        backgroundc: "#ffffff",
+        repeat: "1",
+        ajax: "true"
+      }),
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
     const html = convRes.data.toString();
-	  console.log(html);
     const start = "\" controls><source src=\"";
     const end = "\" type=\"video/mp4\">Your browser";
     const mp4 = html.split(start)?.[1]?.split(end)?.[0];
@@ -787,8 +794,8 @@ ovlcmd(
       }
       const cheminFichier = await ovl.dl_save_media_ms(msg_Repondu.stickerMessage)
       
-      const buffer = fs.readFileSync(cheminFichier);
-      const mp4Url = await convertWebpToMp4({ file: buffer, filename: "fichier.webp" });
+      const stream = fs.createReadStream(cheminFichier);
+      const mp4Url = await convertWebpToMp4({ file: stream, filename: "fichier.webp" });
 
       await ovl.sendMessage(ms_org, {
         video: { url: mp4Url },
@@ -979,7 +986,7 @@ ovlcmd(
 
       await ovl.sendMessage(ms_org, {
         audio: fs.readFileSync(output),
-        mimetype: 'audio/mp4'
+        mimetype: 'audio/mpeg'
       }, { quoted: ms });
 
       fs.unlinkSync(videoPath);
@@ -1004,21 +1011,19 @@ ovlcmd(
 
     try {
       const audioPath = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
-
       const basename = path.basename(audioPath, path.extname(audioPath));
       const dir = path.dirname(audioPath);
       const output = path.join(dir, `${basename}.mp4`);
-
-      console.log('Audio:', audioPath);
-      console.log('Output:', output);
 
       await new Promise((resolve, reject) => {
         const ffmpeg = spawn('ffmpeg', [
           '-y',
           '-i', audioPath,
-          '-filter_complex',
-          '[0:a]showspectrum=s=640x360:mode=combined:color=intensity:slide=scroll:scale=log[spec];color=s=640x360:c=black[bg];[bg][spec]overlay=format=auto',
+          '-f', 'lavfi',
+          '-i', 'color=c=black:s=640x360:d=0.1',
+          '-c:v', 'libx264',
           '-pix_fmt', 'yuv420p',
+          '-c:a', 'aac',
           '-shortest',
           output
         ]);
@@ -1029,9 +1034,7 @@ ovlcmd(
         });
       });
 
-      await ovl.sendMessage(ms_org, {
-        video: fs.readFileSync(output)
-      }, { quoted: ms });
+      await ovl.sendMessage(ms_org, { video: fs.readFileSync(output) }, { quoted: ms });
 
       fs.unlinkSync(audioPath);
       fs.unlinkSync(output);
