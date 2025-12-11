@@ -677,13 +677,13 @@ ovlcmd(
     const text = arg.join(' ');
 
     try {
-      const response = await axios.get(`https://bk9.fun/maker/text2gif?q=${encodeURIComponent(text)}`, {
+      const response = await axios.get(`https://api-ovl.koyeb.app/attp?texte=${encodeURIComponent(text)}`, {
         responseType: 'arraybuffer',
       });
 
       const stickerBuffer = await new Sticker(response.data, {
-        pack: text || nom_Auteur_Message,
-        author: "",
+        pack: config.STICKER_PACK_NAME,
+        author: config.STICKER_AUTHOR_NAME,
         type: StickerTypes.CROPPED,
         quality: 90,
         background: "transparent",
@@ -712,13 +712,13 @@ ovlcmd(
     const text = arg.join(' ');
 
     try {
-      const response = await axios.get(`https://bk9.fun/maker/text2img?q=${encodeURIComponent(text)}`, {
+      const response = await axios.get(`https://api-ovl.koyeb.app/ttp?texte=${encodeURIComponent(text)}`, {
         responseType: 'arraybuffer',
       });
 
       const stickerBuffer = await new Sticker(response.data, {
-        pack: text || nom_Auteur_Message,
-        author: "",
+        pack: config.STICKER_PACK_NAME,
+        author: config.STICKER_AUTHOR_NAME,
         type: StickerTypes.CROPPED,
         quality: 70,
         background: "transparent",
