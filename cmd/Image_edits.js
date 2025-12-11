@@ -1,7 +1,7 @@
 const axios = require("axios");
 const FormData = require("form-data");
 
-const nom = [
+const effetsCanvacord = [
   "shit",
   "wasted",
   "wanted",
