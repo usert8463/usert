@@ -1,20 +1,3 @@
-const groupCache = new NodeCache({stdTTL: 5 * 60, useClones: false})
-
-const sock = makeWASocket({
-    
-})
-
-
-
-sock.ev.on('group-participants.update', async (event) => {
-    const metadata = await sock.groupMetadata(event.id)
-    groupCache.set(event.id, metadata)
-})
-
-
-
-
-
 const originalLog = console.log;
 const originalError = console.error;
 
