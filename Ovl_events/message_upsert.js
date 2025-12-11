@@ -172,10 +172,10 @@ async function message_upsert(m, ovl) {
     presence(ovl, ms_org);
     lecture_status(ovl, ms, ms_org);
     like_status(ovl, ms, ms_org, id_Bot);
-    dl_status(ovl, ms_org, ms);
+    dl_status(ovl, ms_org, ms, id_Bot);
     eval_exec(ovl, cmd_options, { ...cmd_options });
     chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot, auteur_Msg_Repondu, auteur_Message);
-    antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org);
+    antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org, id_Bot);
     antimention(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antitag(ovl, ms, ms_org, mtype, verif_Groupe, verif_Ovl_Admin, verif_Admin, auteur_Message);
     mention(ovl, ms_org, ms, mtype, verif_Groupe, id_Bot, repondre, mention_JID);
