@@ -6,6 +6,8 @@ const { Sticker, StickerTypes } = require("wa-sticker-formatter");
 const config = require('../set');
 const { translate } = require('@vitalets/google-translate-api');
 const FormData = require('form-data');
+const { ytdl } = require("../lib/dl");
+const acrcloud = require("acrcloud");
 
 ovlcmd(
     {
@@ -435,3 +437,71 @@ ${lyrics}`;
     }
   }
 );
+
+ 
+const acr = new acrcloud({
+  host: "identify-us-west-2.acrcloud.com",
+  access_key: "4ee38e62e85515a47158aeb3d26fb741",
+  access_secret: "KZd3cUQoOYSmZQn1n5ACW5XSbqGlKLhg6G8S8EvJ"
+});
+
+ovlcmd(
+{
+  nom_cmd: "shazam",
+  classe: "Search",
+  react: "🎵",
+  desc: "Identifier une musique depuis un audio/vidéo",
+  alias: []
+},
+async (ms_org, ovl, { msg_Repondu, ms, repondre }) => {
+
+  let mediaMessage = null;
+
+  if (msg_Repondu?.audioMessage) mediaMessage = msg_Repondu.audioMessage;
+  else if (msg_Repondu?.videoMessage) mediaMessage = msg_Repondu.videoMessage;
+  else if (ms.message?.videoMessage) mediaMessage = ms.message.videoMessage;
+
+  if (!mediaMessage) {
+    return repondre("Répondez à un audio ou une courte vidéo");
+  }
+
+  try {
+    const media = await ovl.dl_save_media_ms(mediaMessage);
+      
+    let buffer = fs.readFileSync(media);
+    const maxi = 1 * 1024 * 1024;
+    if (buffer.length > maxi) buffer = buffer.slice(0, maxi);
+
+    const result = await acr.identify(buffer);
+
+    if (result.status.code !== 0 || !result.metadata?.music?.length) {
+      return repondre("Impossible d’identifier la musique.");
+    }
+
+    const song = result.metadata.music[0];
+
+    const title = song.title || "Inconnu";
+    const artist = song.artists?.map(a => a.name).join(", ") || "Inconnu";
+    const album = song.album?.name || "Inconnu";
+    const genre = song.genres?.map(g => g.name).join(", ") || "N/A";
+    const release = song.release_date || "N/A";
+
+    const yt = await yts(`${title} ${artist}`);
+    const info = await ytdl(query, "audio");
+    const ytUrl = info.yts[0].url || "Aucun lien trouvé";
+    
+    const caption = `╭──〔 *🎵 OVL-SHAZAM* 〕──⬣
+⬡ 🎧 *Titre* : ${title}
+⬡ 👤 *Artiste* : ${artist}
+⬡ 💿 *Album* : ${album}
+⬡ 🎼 *Genre* : ${genre}
+⬡ 📅 *Sortie* : ${release}
+⬡ ▶️ *YouTube* : ${ytUrl}
+╰───────────────────⬣`;
+
+    await ovl.sendMessage(ms_org, { text: caption }, { quoted: ms });
+
+  } catch (err) {
+    console.error("Erreur Shazam :", err);
+    repondre("Échec de la reconnaissance.");
+});
