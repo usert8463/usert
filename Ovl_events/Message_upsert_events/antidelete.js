@@ -1,6 +1,6 @@
 const { WA_CONF } = require('../../DataBase/wa_conf');
 
-async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org) {
+async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org, id_bot) {
   const settings = await WA_CONF.findOne({ where: { id: '1' } });
   if (!settings) return;
 
@@ -17,7 +17,7 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org) {
       const deletedMsg = getMessage(deletedMsgKey.key.id);
       if (!deletedMsg) return;
 
-      const jid = deletedMsg.key.remoteJid;
+      const jid = deletedMsg.key.remoteJidAlt || deletedMsg.key.remoteJid;
       const isGroup = jid?.endsWith('@g.us');
       const sender = isGroup ? (deletedMsg.key.participant || deletedMsg.participant) : jid;
       const deletionTime = new Date().toISOString().substr(11, 8);
@@ -40,7 +40,7 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org) {
 
         if (antideleteConfig.includes('-org')) {
           if (antideleteConfig.includes('status') && jid.endsWith('status@broadcast')) {
-            await ovl.sendMessage(ovl.user.id, {
+            await ovl.sendMessage(id_bot, {
               forward: deletedMsg,
               contextInfo: {
                 externalAdReply: { title: 'OVL-MD-V2-ANTIDELETE' }
@@ -81,12 +81,12 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org) {
 ${provenance}
           `.trim();
 
-          await ovl.sendMessage(ovl.user.id, {
+          await ovl.sendMessage(id_bot, {
             text: header,
             mentions: [sender, auteur_Message]
           }, { quoted: deletedMsg });
 
-          await ovl.sendMessage(ovl.user.id, {
+          await ovl.sendMessage(id_bot, {
             forward: deletedMsg
           }, { quoted: deletedMsg });
         }
