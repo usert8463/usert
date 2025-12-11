@@ -30,7 +30,7 @@ const {
 } = require('@whiskeysockets/baileys');
 
 const { getMessage } = require('./lib/store');
-const { groupCache } = require('../lib/groupeCache');
+const { groupCache } = require('./lib/groupeCache');
 const { get_session, restaureAuth } = require('./DataBase/session');
 const config = require('./set');
 const {
