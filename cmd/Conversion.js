@@ -787,8 +787,8 @@ ovlcmd(
       }
       const cheminFichier = await ovl.dl_save_media_ms(msg_Repondu.stickerMessage)
       
-      const stream = fs.createReadStream(cheminFichier);
-      const mp4Url = await convertWebpToMp4({ file: stream, filename: "fichier.webp" });
+      const buffer = fs.readFileSync(cheminFichier);
+      const mp4Url = await convertWebpToMp4({ file: buffer, filename: "fichier.webp" });
 
       await ovl.sendMessage(ms_org, {
         video: { url: mp4Url },
