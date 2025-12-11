@@ -112,7 +112,7 @@ ovlcmd(
         pack: config.STICKER_PACK_NAME,
         author: config.STICKER_AUTHOR_NAME,
         type: StickerTypes.FULL,
-        quality: msg_Repondu.imageMessage ? 100 : 10
+        quality: msg_cible.imageMessage ? 100 : 30
       });
 
       const stickerFileName = `${Math.floor(Math.random() * 10000)}.webp`;
@@ -173,7 +173,7 @@ ovlcmd(
         pack: config.STICKER_PACK_NAME,
         author: config.STICKER_AUTHOR_NAME,
         type: StickerTypes.CROPPED,
-        quality: msg_Repondu.imageMessage ? 100 : 10
+        quality: msg_cible.imageMessage ? 100 : 30
       });
 
       const stickerFileName = `${Math.floor(Math.random() * 10000)}.webp`;
@@ -234,7 +234,7 @@ ovlcmd(
         pack: config.STICKER_PACK_NAME,
         author: config.STICKER_AUTHOR_NAME,
         type: StickerTypes.CIRCLE,
-        quality: msg_Repondu.imageMessage ? 100 : 10
+        quality: msg_cible.imageMessage ? 100 : 30
       });
 
       const stickerFileName = `${Math.floor(Math.random() * 10000)}.webp`;
@@ -295,7 +295,7 @@ ovlcmd(
         pack: config.STICKER_PACK_NAME,
         author: config.STICKER_AUTHOR_NAME,
         type: StickerTypes.ROUNDED,
-        quality: msg_Repondu.imageMessage ? 100 : 10
+        quality: msg_cible.imageMessage ? 100 : 30
       });
 
       const stickerFileName = `${Math.floor(Math.random() * 10000)}.webp`;
