@@ -8,6 +8,7 @@ const { translate } = require('@vitalets/google-translate-api');
 const FormData = require('form-data');
 const { ytdl } = require("../lib/dl");
 const acrcloud = require("acrcloud");
+const fs = require("fs");
 
 ovlcmd(
     {
@@ -476,7 +477,7 @@ async (ms_org, ovl, { msg_Repondu, ms, repondre }) => {
     if (result.status.code !== 0 || !result.metadata?.music?.length) {
       return repondre("Impossible d’identifier la musique.");
     }
-
+      
     const song = result.metadata.music[0];
 
     const title = song.title || "Inconnu";
@@ -485,9 +486,9 @@ async (ms_org, ovl, { msg_Repondu, ms, repondre }) => {
     const genre = song.genres?.map(g => g.name).join(", ") || "N/A";
     const release = song.release_date || "N/A";
 
-    const yt = await yts(`${title} ${artist}`);
-    const ytUrl = yt.videos?.[0]?.url || "Aucun lien trouvé";
-
+    const info = await ytdl(`${title} ${artist}`, "audio");
+    const ytUrl = info.yts[0].url || "Aucun lien trouvé";
+      
     const caption =
 `╭━━━〔 🎧 *OVL • SHAZAM* 〕━━━╮
 
