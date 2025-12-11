@@ -239,7 +239,6 @@ function setupAutoPing(url) {
         }
       }
     } catch (err) {
-      console.error('Erreur lors du ping ❌', err.message);
     }
   }, 30000);
 }
