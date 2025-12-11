@@ -49,11 +49,12 @@ ovlcmd(
   async (ms_org, ovl, cmd_options) => {
     const { msg_Repondu, ms } = cmd_options;
 
-    if (!msg_Repondu) {
+	const msg_cible = msg_Repondu || ms.message;
+    if (!msg_cible) {
       return ovl.sendMessage(ms_org, { text: "Veuillez mentionner un fichier (image, vidéo, audio ou document)." }, { quoted: ms });
     }
 
-    const mediaMessage = msg_Repondu.imageMessage || msg_Repondu.videoMessage || msg_Repondu.documentMessage || msg_Repondu.audioMessage;
+    const mediaMessage = msg_cible.imageMessage || msg_cible.videoMessage || msg_cible.documentMessage || msg_cible.audioMessage;
     if (!mediaMessage) {
       return ovl.sendMessage(ms_org, { text: "Type de fichier non supporté. Veuillez mentionner une image, vidéo ou audio." }, { quoted: ms });
     }
@@ -79,8 +80,9 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     const { msg_Repondu, arg, ms } = cmd_options;
-    
-    if (!msg_Repondu) {
+	  
+    const msg_cible = msg_Repondu || ms.message;
+    if (!msg_cible) {
       return ovl.sendMessage(ms_org, {
         text: "Répondez à une image, vidéo ou GIF pour créer un sticker.",
       }, { quoted: ms });
@@ -89,8 +91,8 @@ ovlcmd(
     let media;
     try {
       const mediaMessage =
-        msg_Repondu.imageMessage ||
-        msg_Repondu.videoMessage;
+        msg_cible.imageMessage ||
+        msg_cible.videoMessage;
 
       if (!mediaMessage) {
         return ovl.sendMessage(ms_org, {
@@ -144,7 +146,8 @@ ovlcmd(
   async (ms_org, ovl, cmd_options) => {
     const { msg_Repondu, ms } = cmd_options;
 
-    if (!msg_Repondu) {
+    const msg_cible = msg_Repondu || ms.message;
+    if (!msg_cible) {
       return ovl.sendMessage(ms_org, {
         text: "Répondez à une image ou vidéo.",
       }, { quoted: ms });
@@ -153,8 +156,8 @@ ovlcmd(
     let media;
     try {
       const mediaMessage =
-        msg_Repondu.imageMessage ||
-        msg_Repondu.videoMessage;
+        msg_cible.imageMessage ||
+        msg_cible.videoMessage;
 
       if (!mediaMessage) {
         return ovl.sendMessage(ms_org, {
@@ -204,7 +207,8 @@ ovlcmd(
   async (ms_org, ovl, cmd_options) => {
     const { msg_Repondu, ms } = cmd_options;
 
-    if (!msg_Repondu) {
+	const msg_cible = msg_Repondu || ms.message;
+    if (!msg_cible) {
       return ovl.sendMessage(ms_org, {
         text: "Répondez à une image ou vidéo.",
       }, { quoted: ms });
@@ -213,8 +217,8 @@ ovlcmd(
     let media;
     try {
       const mediaMessage =
-        msg_Repondu.imageMessage ||
-        msg_Repondu.videoMessage;
+        msg_cible.imageMessage ||
+        msg_cible.videoMessage;
 
       if (!mediaMessage) {
         return ovl.sendMessage(ms_org, {
@@ -264,7 +268,8 @@ ovlcmd(
   async (ms_org, ovl, cmd_options) => {
     const { msg_Repondu, ms } = cmd_options;
 
-    if (!msg_Repondu) {
+	const msg_cible = msg_Repondu || ms.message;
+    if (!msg_cible) {
       return ovl.sendMessage(ms_org, {
         text: "Répondez à une image ou vidéo.",
       }, { quoted: ms });
@@ -273,8 +278,8 @@ ovlcmd(
     let media;
     try {
       const mediaMessage =
-        msg_Repondu.imageMessage ||
-        msg_Repondu.videoMessage;
+        msg_cible.imageMessage ||
+        msg_cible.videoMessage;
 
       if (!mediaMessage) {
         return ovl.sendMessage(ms_org, {
@@ -514,14 +519,15 @@ ovlcmd(
   async (ms_org, ovl, cmd_options) => {
     const { msg_Repondu, ms } = cmd_options;
 
-    if (!msg_Repondu?.imageMessage) {
+	const msg_cible = msg_Repondu || ms.message;
+    if (!msg_cible?.imageMessage) {
       return ovl.sendMessage(ms_org, {
         text: "Veuillez répondre à une image pour améliorer sa qualité.",
       }, { quoted: ms });
     }
 
     try {
-      const image = await ovl.dl_save_media_ms(msg_Repondu.imageMessage);
+      const image = await ovl.dl_save_media_ms(msg_cible.imageMessage);
       if (!image) {
         return ovl.sendMessage(ms_org, {
           text: "Impossible de télécharger l'image. Réessayez.",
