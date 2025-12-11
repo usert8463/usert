@@ -21,7 +21,6 @@ async function mention(ovl, jid, ms, mtype, verif_Groupe, id_Bot, repondre, ment
               ovl.sendMessage(jid, {
                 audio: { url },
                 mimetype: "audio/mpeg",
-                ptt: true,
               }, { quoted: ms });
               break;
 
