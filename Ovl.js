@@ -1,3 +1,20 @@
+const groupCache = new NodeCache({stdTTL: 5 * 60, useClones: false})
+
+const sock = makeWASocket({
+    
+})
+
+
+
+sock.ev.on('group-participants.update', async (event) => {
+    const metadata = await sock.groupMetadata(event.id)
+    groupCache.set(event.id, metadata)
+})
+
+
+
+
+
 const originalLog = console.log;
 const originalError = console.error;
 
@@ -30,11 +47,13 @@ const {
 } = require('@whiskeysockets/baileys');
 
 const { getMessage } = require('./lib/store');
+const groupCache = require('../lib/groupeCache');
 const { get_session, restaureAuth } = require('./DataBase/session');
 const config = require('./set');
 const {
   message_upsert,
   group_participants_update,
+  group_update,
   connection_update,
   call,
   dl_save_media_ms,
@@ -66,6 +85,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       keepAliveIntervalMs: 10000,
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: true,
+      cachedGroupMetadata: async (jid) => groupCache.get(jid),
       getMessage: async (key) => {
         const msg = getMessage(key.id);
         return msg?.message || undefined;
@@ -74,6 +94,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
 
     ovl.ev.on('messages.upsert', async (m) => message_upsert(m, ovl));
     ovl.ev.on('group-participants.update', async (data) => group_participants_update(data, ovl));
+    ovl.ev.on('groups.update', async (data) => group_update(data, ovl));
     ovl.ev.on('connection.update', async (con) => {
       connection_update(
         con,
@@ -84,6 +105,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     });
     ovl.ev.on('creds.update', saveCreds);
     ovl.ev.on("call", async (callEvent) => call(ovl, callEvent));
+    ovl.ev.on('presence.update', async (presence) => console.log(presence))
     
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);
