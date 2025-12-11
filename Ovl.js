@@ -116,8 +116,10 @@ async function stopSession(numero) {
   if (instancesSessions.has(numero)) {
     const ovl = instancesSessions.get(numero);
     try {
-      await ovl.logout();
-      ovl.ev.removeAllListeners();
+      await ovl.ws.close();
+      const dirPath = path.join(__dirname, "./auth", numero);
+      if (fs.existsSync(dirPath)) await fs.promises.rm(dirPath, { recursive: true, force: true });
+      console.log(`🗑️ Dossier auth/${numero} supprimé.`);
       console.log(`🛑 Session ${numero} arrêtée.`);
     } catch (err) {
       console.error(`❌ Erreur lors de l'arrêt de la session ${numero} :`, err.message);
