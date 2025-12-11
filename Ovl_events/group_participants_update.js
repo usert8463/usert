@@ -1,7 +1,7 @@
 const { GroupSettings, Events2 } = require("../DataBase/events");
 const { jidDecode } = require("@whiskeysockets/baileys");
 const { getJid } = require('./Message_upsert_events');
-const { groupCache } = require('./lib/groupeCache');
+const { groupCache } = require('../lib/groupeCache');
 const config = require("../set");
 
 const parseID = (jid) => {
