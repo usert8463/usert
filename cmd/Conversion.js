@@ -1005,22 +1005,31 @@ ovlcmd(
     desc: "Convertit un audio en vidéo animée"
   },
   async (ms_org, ovl, { msg_Repondu, ms }) => {
+
     if (!msg_Repondu || !msg_Repondu.audioMessage) {
       return ovl.sendMessage(ms_org, { text: "❌ Répondez à un *audio*." }, { quoted: ms });
     }
 
     try {
       const audioPath = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
+		
+      const duration = parseFloat(
+        execSync(`ffprobe -v error -show_entries format=duration -of default=nk=1:nw=1 "${audioPath}"`)
+        .toString()
+        .trim()
+      );
+
       const basename = path.basename(audioPath, path.extname(audioPath));
       const dir = path.dirname(audioPath);
       const output = path.join(dir, `${basename}.mp4`);
-
+ 
       await new Promise((resolve, reject) => {
         const ffmpeg = spawn('ffmpeg', [
           '-y',
           '-i', audioPath,
           '-f', 'lavfi',
-          '-i', 'color=c=black:s=640x360',
+          `-i`,
+          `color=c=black:s=640x360:d=${duration}`,
           '-c:v', 'libx264',
           '-pix_fmt', 'yuv420p',
           '-c:a', 'aac',
@@ -1038,6 +1047,7 @@ ovlcmd(
 
       fs.unlinkSync(audioPath);
       fs.unlinkSync(output);
+
     } catch (err) {
       await ovl.sendMessage(ms_org, { text: `❌ Erreur de conversion en vidéo : ${err.message}` }, { quoted: ms });
     }
