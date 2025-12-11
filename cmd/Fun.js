@@ -249,7 +249,6 @@ ovlcmd(
     }
 );
 
-
 ovlcmd(
     {
         nom_cmd: "toprank",
@@ -268,7 +267,7 @@ ovlcmd(
         }
 
         let rankMessage = `
-╭───🏆 *OVL-TOP-RANK* 🏆───╮`;
+╭──🏆 *OVL-TOP-RANK* 🏆──╮`;
 
         topUsers.forEach((user, index) => {
             const position = `${index + 1}`.padStart(2, " ");
@@ -276,7 +275,7 @@ ovlcmd(
 ┃    ✉️ *Messages :* ${user.messages}
 ┃    🔰 *Niveau :* ${user.level} (${levels[user.level - 1]?.name || "OVL-GOD-LEVEL"})\n┃\n`;
         });
-rankMessage += `╰─────────────────────╯`;
+rankMessage += `╰───────────────────╯`;
         await ovl.sendMessage(ms_org, { text: rankMessage }, { quoted: cmd_options.ms });
     }
 );
