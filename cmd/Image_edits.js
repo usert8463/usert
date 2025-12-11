@@ -40,11 +40,12 @@ function genererCommandeCanvacord(nomCommande) {
       const { arg, ms, getJid, auteur_Msg_Repondu, msg_Repondu, auteur_Message } = options;
 
       try {
+        const msg_cible = msg_Repondu || ms.message;
         let imageUrl;
         let useFormData = false;
 
-        if (msg_Repondu?.imageMessage) {
-          const cheminFichier = await ovl.dl_save_media_ms(msg_Repondu.imageMessage);
+        if (msg_cible?.imageMessage) {
+          const cheminFichier = await ovl.dl_save_media_ms(msg_cible.imageMessage);
           imageUrl = cheminFichier;
           useFormData = true;
         } else if (arg[0]?.startsWith("http")) {
