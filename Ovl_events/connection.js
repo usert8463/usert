@@ -1,11 +1,20 @@
 const fs = require('fs');
 const path = require('path');
-const { delay, DisconnectReason } = require("@whiskeysockets/baileys");
+const { delay, DisconnectReason, jidDecode } = require("@whiskeysockets/baileys");
 let evt = require("../lib/ovlcmd");
 const pkg = require('../package');
 const config = require("../set");
 const { installpg } = require("../lib/plugin");
 const { manage_env } = require("../lib/manage_env");
+
+const decodeJid = (jid) => {
+  if (!jid) return jid;
+  if (/:\d+@/gi.test(jid)) {
+    const d = jidDecode(jid) || {};
+    return (d.user && d.server && `${d.user}@${d.server}`) || jid;
+  }
+  return jid;
+};
 
 async function connection_update(con, ovl, main, startNextSession = null) {
     const { connection, lastDisconnect } = con;
@@ -56,7 +65,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 
             await delay(5000);
 
-            await ovl.sendMessage(ovl.user.id, {
+            await ovl.sendMessage(decodeJid(ovl.user.id), {
                 text: start_msg,
                 contextInfo: {
                     forwardingScore: 1,
