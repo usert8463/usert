@@ -37,6 +37,8 @@ async function connection_update(con, ovl, main, startNextSession = null) {
             await manage_env();
             console.log("✅ Variables synchronisées.");
 
+            await installpg();
+        
             const commandes = fs.readdirSync(path.join(__dirname, "../cmd"))
                 .filter(f => path.extname(f).toLowerCase() === ".js");
 
@@ -49,8 +51,6 @@ async function connection_update(con, ovl, main, startNextSession = null) {
                     console.log(`  ✗ ${fichier} — erreur : ${e.message}`);
                 }
             }
-
-           await installpg();
 
             const start_msg = `╭───〔 🤖 𝙊𝙑𝙇 𝘽𝙊𝙏 〕───⬣
 │ ߷ *Etat*       ➜ Connecté ✅
