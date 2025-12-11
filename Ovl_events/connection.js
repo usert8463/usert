@@ -50,7 +50,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
                 }
             }
 
-            installpg();
+           await installpg();
 
             const start_msg = `╭───〔 🤖 𝙊𝙑𝙇 𝘽𝙊𝙏 〕───⬣
 │ ߷ *Etat*       ➜ Connecté ✅
