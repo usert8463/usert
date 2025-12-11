@@ -440,9 +440,9 @@ ${lyrics}`;
 
  
 const acr = new acrcloud({
-  host: "identify-us-west-2.acrcloud.com",
-  access_key: "4ee38e62e85515a47158aeb3d26fb741",
-  access_secret: "KZd3cUQoOYSmZQn1n5ACW5XSbqGlKLhg6G8S8EvJ"
+  host: "identify-eu-west-1.acrcloud.com",
+  access_key: "12e1a7cd0396b0c7419792fe23161175",
+  access_secret: "IFXo3K5j6dwpFXMRR7FFitF1LWqx9jqj8KE6Cztj"
 });
 
 ovlcmd(
@@ -467,7 +467,6 @@ async (ms_org, ovl, { msg_Repondu, ms, repondre }) => {
 
   try {
     const media = await ovl.dl_save_media_ms(mediaMessage);
-      
     let buffer = fs.readFileSync(media);
     const maxi = 1 * 1024 * 1024;
     if (buffer.length > maxi) buffer = buffer.slice(0, maxi);
@@ -487,21 +486,26 @@ async (ms_org, ovl, { msg_Repondu, ms, repondre }) => {
     const release = song.release_date || "N/A";
 
     const yt = await yts(`${title} ${artist}`);
-    const info = await ytdl(query, "audio");
-    const ytUrl = info.yts[0].url || "Aucun lien trouvé";
-    
-    const caption = `╭──〔 *🎵 OVL-SHAZAM* 〕──⬣
-⬡ 🎧 *Titre* : ${title}
-⬡ 👤 *Artiste* : ${artist}
-⬡ 💿 *Album* : ${album}
-⬡ 🎼 *Genre* : ${genre}
-⬡ 📅 *Sortie* : ${release}
-⬡ ▶️ *YouTube* : ${ytUrl}
-╰───────────────────⬣`;
+    const ytUrl = yt.videos?.[0]?.url || "Aucun lien trouvé";
+
+    const caption =
+`╭━━━〔 🎧 *OVL • SHAZAM* 〕━━━╮
+
+🎵 *Titre* : ${title}
+👤 *Artiste* : ${artist}
+💿 *Album* : ${album}
+🎼 *Genre* : ${genre}
+📅 *Sortie* : ${release}
+
+🌐 *YouTube* :
+${ytUrl}
+
+╰━━━━━━━━━━━━━━━━━━━━╯`;
 
     await ovl.sendMessage(ms_org, { text: caption }, { quoted: ms });
 
   } catch (err) {
     console.error("Erreur Shazam :", err);
     repondre("Échec de la reconnaissance.");
+  }
 });
