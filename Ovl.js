@@ -88,13 +88,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     });
     ovl.ev.on('creds.update', saveCreds);
     ovl.ev.on("call", async (callEvent) => call(ovl, callEvent));
-    ovl.ev.on('presence.update', async (update) => {
-  try {
-    console.log("Presence update reçu :", update);
-  } catch (err) {
-    console.error("Erreur presence.update :", err);
-  }
-});
 
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);
