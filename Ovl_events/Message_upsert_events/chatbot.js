@@ -2,11 +2,11 @@ const axios = require('axios');
 const { ChatbotConf } = require('../../DataBase/chatbot');
 
 const apiKeys = [
-  "AIzaSyDwi6VPfi8tohHPchmHYmjOYUP0edQfg-0",
-  "AIzaSyB0ur58fMSEReiARhU6KrcHyzWQxH3xe-Y",
-  "AIzaSyDmMxQt4xU3OIh0HPZueGy59LuovzGpoKQ",
-  "AIzaSyCXgP_SvfItKImfa-fgLOACaVa3SW7BjZc",
-  "AIzaSyBMn6UPbNwmAnVQjO3iwtvhO3A-Y3VaPBk"
+  "AIzaSyADkh8hyUA79THw7TWbnj_FazMFAFf95Z8",
+  "AIzaSyAMoAoCtGTlyq0RgYgLQrSQ5bKX3sWB6qg",
+  "AIzaSyDPdM9kspPLo9MA4KHkEzecaI10sKNcpr4",
+  "AIzaSyBFDPniuVw5gkz7pOYKfOXPbIeilEvffc4",
+  "AIzaSyB3oDcZI2UEtfaZ4G0iV-Ha5U2UJsEXFxA"
 ];
 
 async function chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot, auteur_Msg_Repondu, auteur_Message) {
