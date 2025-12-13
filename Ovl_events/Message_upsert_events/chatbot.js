@@ -76,7 +76,7 @@ Voici le message de l'utilisateur :`;
           break;
         }
       } catch (err) {
-        console.log(`❌ API key invalide ou limitée : ${key}`);
+        console.log(`${key} pour chatbot, erreur: `, err);
         continue; // On essaie la clé suivante
       }
     }
@@ -84,9 +84,7 @@ Voici le message de l'utilisateur :`;
     if (finalResponse) {
       return repondre(finalResponse);
     }
-
-    repondre("❌ Toutes les clés API ont échoué. Aucune réponse possible.");
-
+    
   } catch (err) {
     console.error("Erreur dans chatbot :", err);
   }
