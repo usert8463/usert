@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { delay, DisconnectReason, jidDecode } = require("@whiskeysockets/baileys");
+const { execSync } = require("child_process");
 let evt = require("../lib/ovlcmd");
 const pkg = require('../package');
 const config = require("../set");
@@ -17,6 +18,30 @@ const decodeJid = (jid) => {
   }
   return jid;
 };
+
+async function installMissingDependencies() {
+  const pkgJson = require('../package.json');
+  const dependencies = { ...pkgJson.dependencies, ...pkgJson.devDependencies };
+  const missing = [];
+
+  for (const dep of Object.keys(dependencies)) {
+    try {
+      require.resolve(dep);
+    } catch {
+      missing.push(dep);
+    }
+  }
+
+  if (missing.length > 0) {
+    console.log(`⚙️ Installation des modules manquants : ${missing.join(", ")}`);
+    try {
+      execSync(`npm install ${missing.join(" ")}`, { stdio: "inherit" });
+      console.log("✅ Modules manquants installés avec succès.");
+    } catch (e) {
+      console.error("❌ Erreur lors de l'installation des modules :", e);
+    }
+  }
+}
 
 async function connection_update(con, ovl, main, startNextSession = null) {
   const { connection, lastDisconnect } = con;
@@ -40,6 +65,9 @@ async function connection_update(con, ovl, main, startNextSession = null) {
       console.log("✅ Variables synchronisées.");
 
       await installpg();
+
+      // Vérifier et installer les dépendances manquantes
+      await installMissingDependencies();
 
       const commandes = fs.readdirSync(path.join(__dirname, "../cmd"))
         .filter(f => path.extname(f).toLowerCase() === ".js");
@@ -67,7 +95,6 @@ async function connection_update(con, ovl, main, startNextSession = null) {
         for (const fichier of pluginsFiles) {
           await delay(100);
           const pluginPath = path.join(pluginsDir, fichier);
-
           try {
             delete require.cache[require.resolve(pluginPath)];
             require(pluginPath);
@@ -75,7 +102,6 @@ async function connection_update(con, ovl, main, startNextSession = null) {
           } catch (e) {
             console.log(`  ✗ ${fichier} — erreur : ${e.message}`);
           }
-
           console.log = realConsoleLog;
         }
       }
