@@ -5,25 +5,30 @@ const FileType = require('file-type');
 const { getJid } = require('./Message_upsert_events');
 
 async function dl_save_media_ms(ovl, message) {
-  const quoted = message.msg || message;
-  const mime = quoted.mimetype || '';
-  const type = quoted.mtype ? quoted.mtype.replace(/Message/gi, '') : mime.split('/')[0];
-  if (!mime) throw new Error("MIME type manquant");
+  const quoted = message.msg || message;
+  const mime = quoted.mimetype || '';
+  const type = quoted.mtype ? quoted.mtype.replace(/Message/gi, '') : mime.split('/')[0];
+  if (!mime) throw new Error("MIME type manquant");
 
-  const stream = await downloadContentFromMessage(quoted, type);
-  const chunks = [];
-  for await (const chunk of stream) chunks.push(chunk);
-  const buffer = Buffer.concat(chunks);
+  const stream = await downloadContentFromMessage(quoted, type);
+  const chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  const buffer = Buffer.concat(chunks);
 
-  const fileType = await FileType.fromBuffer(buffer);
-  if (!fileType) throw new Error("Type de fichier inconnu");
+  const fileType = await FileType.fromBuffer(buffer);
+  if (!fileType) throw new Error("Type de fichier inconnu");
 
-  const dir = './downloads';
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const dir = './downloads';
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-  const filePath = path.join(dir, `media_${Date.now()}.${fileType.ext}`);
-  await fs.promises.writeFile(filePath, buffer);
-  return filePath;
+  const filePath = path.join(dir, `media_${Date.now()}.${fileType.ext}`);
+  await fs.promises.writeFile(filePath, buffer);
+
+  setTimeout(() => {
+    fs.unlink(filePath, () => {});
+  }, 5 * 60 * 1000);
+
+  return filePath;
 }
 
 const decodeJid = (jid) => {
@@ -49,12 +54,12 @@ async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {
       if (type !== "notify") return;
 
       for (const msg of messages) {
-        const idSalon = msg.key.remoteJid;
+        const idSalon = msg.key.remoteJidAlt || msg.key.remoteJid;
 
         let expJid = msg.key.fromMe
           ? decodeJid(ovl.user.id)
-          : msg.key.participant
-            ? await getJid(msg.key.participant, idSalon, ovl)
+          : (msg.key.participantAlt || msg.key.participant)
+            ? await getJid(msg.key.participantAlt || msg.key.participant, idSalon, ovl)
             : idSalon;
 
         const match =
@@ -66,9 +71,16 @@ async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {
         if (match) {
           ovl.ev.off("messages.upsert", listener);
           if (timer) clearTimeout(timer);
-          if (msg.key.participant && !msg.key.fromMe) {
-            msg.key.participant = await getJid(msg.key.participant, idSalon, ovl);
+
+          if ((msg.key.participantAlt || msg.key.participant) && !msg.key.fromMe) {
+            msg.key.participant = await getJid(
+              msg.key.participantAlt || msg.key.participant,
+              idSalon,
+              ovl
+            );
           }
+
+          msg.key.remoteJid = idSalon;
           return resolve(msg);
         }
       }
