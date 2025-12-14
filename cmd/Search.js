@@ -407,30 +407,27 @@ ovlcmd(
     if (!songName) return repondre("❌ Veuillez fournir un nom de chanson.");
 
     try {
-      const apiUrl = `https://api.kenshiro.cfd/api/search/lirik?q=${encodeURIComponent(songName)}`;
+      const apiUrl = `https://api.delirius.store/search/lyrics?query=${encodeURIComponent(songName)}`;
       const { data } = await axios.get(apiUrl);
 
       if (!data.status || !data.data?.lyrics) {
         return repondre("❌ Paroles introuvables pour cette chanson.");
       }
 
-      const { title, artist, url, image, lyrics, id } = data.data;
+      const { title, artists, album, duration, lyrics } = data.data;
 
       const caption = `╭──〔 *🎵 OVL-MD-LYRICS* 〕──⬣
 ⬡ 🎧 *Titre* : ${title}
-⬡ 👤 *Artiste* : ${artist}
-⬡ 🌐 *Lien* : ${url}
-⬡ 🆔 *ID* : ${id}
+⬡ 👤 *Artiste* : ${artists}
+⬡ 💿 *Album* : ${album || "N/A"}
+⬡ ⏱️ *Durée* : ${duration || "N/A"}
 ╰───────────────────⬣
 
 🎼 *Paroles :*
 
 ${lyrics}`;
 
-      await ovl.sendMessage(ms_org, {
-        image: { url: image },
-        caption,
-      }, { quoted: ms });
+      await ovl.sendMessage(ms_org, { text: caption }, { quoted: ms });
 
     } catch (e) {
       console.error("Erreur API Lyrics :", e.message);
@@ -438,7 +435,6 @@ ${lyrics}`;
     }
   }
 );
-
  
 const acr = new acrcloud({
   host: "identify-eu-west-1.acrcloud.com",
