@@ -21,34 +21,34 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 
     switch (connection) {
         case "connecting":
-            console.log("🌍 Connexion en cours...");
+            //console.log("🌍 Connexion en cours...");
             break;
 
         case "open":
-            console.log(`
+        /*    console.log(`
 ╭─────────────────╮
 │                          
 │    🎉  OVL BOT ONLINE 🎉   
 │                          
 ╰─────────────────╯
-`);
+`);*/
 
-            console.log("🔄 Synchronisation des variables d'environnement...");
+            //console.log("🔄 Synchronisation des variables d'environnement...");
             await manage_env();
-            console.log("✅ Variables synchronisées.");
+           // console.log("✅ Variables synchronisées.");
 
             await installpg();
         
             const commandes = fs.readdirSync(path.join(__dirname, "../cmd"))
                 .filter(f => path.extname(f).toLowerCase() === ".js");
 
-            console.log("📂 Chargement des commandes :");
+            //console.log("📂 Chargement des commandes :");
             for (const fichier of commandes) {
                 try {
                     require(path.join(__dirname, "../cmd", fichier));
-                    console.log(`  ✓ ${fichier}`);
+                    //console.log(`  ✓ ${fichier}`);
                 } catch (e) {
-                    console.log(`  ✗ ${fichier} — erreur : ${e.message}`);
+                   // console.log(`  ✗ ${fichier} — erreur : ${e.message}`);
                 }
             }
 
