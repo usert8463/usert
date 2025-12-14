@@ -241,7 +241,7 @@ NOM_BOT=🤖 OVL-MD BOT V2
 
 ### 🌍 Rejoins la Communauté OVL
 
-[![WhatsApp Support](https://img.shields.io/badge/Support%20WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/HzhikAmOuYhFXGLmcyMo62)
+[![WhatsApp Support](https://img.shields.io/badge/Support%20WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/BP1oOMh0QvR7H3vvO9bRYK)
 [![Telegram Channel](https://img.shields.io/badge/Canal%20Telegram-229ED9?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/ovlmd_tlg)
 [![WhatsApp Channel](https://img.shields.io/badge/Channel%20WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://whatsapp.com/channel/0029VayTmvxHltYGCm0J7P0A)
 
