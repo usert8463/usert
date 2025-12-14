@@ -1465,18 +1465,18 @@ ovlcmd({
   if (input === 'all') {
     const plugins = await Plugin.findAll();
     for (const p of plugins) {
-      const filePath = path.join(__dirname, '../cmd', `${p.name}.js`);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      await Plugin.destroy({ where: { name: p.name } });
+      const filePath = path.join(__dirname, '../plugins', `${p.name}.js`) 
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      await Plugin.destroy({ where: { name: p.name } });
     }
     repondre("🗑️ Tous les plugins ont été supprimés.");
-    return exec('pm2 restart all', () => {});
+    return await reloadCommands;
   }
 
   const plugin = await Plugin.findOne({ where: { name: input } });
   if (!plugin) return repondre("❌ Plugin non trouvé dans la base.");
 
-  const filePath = path.join(__dirname, '../cmd', `${plugin.name}.js`);
+  const filePath = path.join(__dirname, '../plugins', `${plugin.name}.js`);
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   await Plugin.destroy({ where: { name: input } });
   repondre(`🗑️ Plugin *${input}* supprimé.`);
@@ -1503,7 +1503,7 @@ ovlcmd({
 
       const res = await axios.get(url);
       const code = res.data;
-      const filePath = path.join(__dirname, "../cmd", `${name}.js`);
+      const filePath = path.join(__dirname, "../plugins", `${name}.js`);
       fs.writeFileSync(filePath, code);
 
       const modules = extractNpmModules(code);
