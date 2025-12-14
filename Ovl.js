@@ -12,7 +12,7 @@ const {
 
 const { getMessage } = require('./lib/store');
 const { groupCache } = require('./lib/groupeCache');
-const { installpg } = require("../lib/plugin");
+const { installpg } = require("./lib/plugin");
 const { get_session, restaureAuth } = require('./DataBase/session');
 const config = require('./set');
 const {
