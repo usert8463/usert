@@ -1107,7 +1107,8 @@ ovlcmd(
       'https://chat.whatsapp.com/BP1oOMh0QvR7H3vvO9bRYK'
     ];
 
-    const message = `📩 *OVL-MD SUPPORT*\nVoici les liens pour rejoindre les groupes de support:\n${inviteLinks.join("\n")}`;
+    const message = `📩 *OVL-MD SUPPORT*\nVoici les liens pour rejoindre les groupes de support:\n\n` +
+      inviteLinks.map(link => `🔗 ${link}`).join('\n\n');
 
     if (verif_Groupe) {
       await repondre("📩 Les liens d'invitation ont été envoyés en message privé.");
