@@ -72,9 +72,10 @@ async function message_upsert(m, ovl) {
     const msg_Repondu = ms.message?.[mtype]?.contextInfo?.quotedMessage;
     const quote = ms.message?.[mtype]?.contextInfo;
     const participantQuoted = ms.message?.[mtype]?.contextInfo?.participant;
-    const auteur_Msg_Repondu = participantQuoted === ovl.user.lid 
+    const auteur_Msg_Repondu = participantQuoted == ovl.user.lid 
      ? id_Bot 
      : await getJid(decodeJid(participantQuoted), ms_org, ovl);
+    console.log(auteur_Msg_Repondu);
     const mentionnes = ms.message?.[mtype]?.contextInfo?.mentionedJid || [];
     const mention_JID = await Promise.all(mentionnes.map(j => getJid(j, ms_org, ovl)));
 
