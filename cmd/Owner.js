@@ -1480,8 +1480,7 @@ ovlcmd({
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   await Plugin.destroy({ where: { name: input } });
 
-  await repondre(`🗑️ Plugin *${input}* supprimé.`);
-  return exec('pm2 restart all', () => {});
+  return repondre(`🗑️ Plugin *${input}* supprimé.`);
 });
 
 ovlcmd({
@@ -1515,7 +1514,6 @@ ovlcmd({
 
       await Plugin.findOrCreate({ where: { name }, defaults: { url } });
       await repondre(`✅ Plugin *${name}* installé avec succès.`);
-      exec('pm2 restart all', () => {});
     } catch (e) {
       await repondre(`❌ Erreur installation *${name}* : ${e.message}`);
     }
