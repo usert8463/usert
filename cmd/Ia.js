@@ -108,11 +108,11 @@ ovlcmd(
         }
 
         const prompt = arg.join(" ");
-        const apiUrl = `https://fgsi.koyeb.app/api/ai/copilot?apikey=fgsiapi-1e8a0e22-6d&text=${encodeURIComponent(prompt)}`;
+        const apiUrl = `https://eliteprotech-apis.zone.id/copilot?message=${encodeURIComponent(prompt)}`;
 
         try {
             const result = await axios.get(apiUrl);
-            const responseText = result.data?.data?.answer || "Erreur de réponse de l\'API.";
+            const responseText = result.data?.text || "Erreur de réponse de l\'API.";
             return repondre(responseText);
         } catch (error) {
             console.error("Erreur Copilot :", error);
@@ -136,11 +136,11 @@ ovlcmd(
         }
 
         const prompt = arg.join(" ");
-        const apiUrl = `https://fgsi.dpdns.org/api/ai/gemini?apikey=fgsiapi-1e8a0e22-6d&text=${encodeURIComponent(prompt)}&conversationId=${auteur_Message}`;
+        const apiUrl = `https://eliteprotech-apis.zone.id/gemini?prompt=${encodeURIComponent(prompt)}`;
 
         try {
             const result = await axios.get(apiUrl);
-            const responseText = result.data?.data.answer || "Erreur de réponse de l\'API Gemini-Pro.";
+            const responseText = result.data?.text || "Erreur de réponse de l\'API Gemini-Pro.";
             return repondre(responseText);
         } catch (error) {
             console.error("Erreur Gemini-Pro :", error);
@@ -233,30 +233,31 @@ ovlcmd(
     }
 );
 */
+
 ovlcmd(
     {
-        nom_cmd: "groq",
+        nom_cmd: "claude",
         classe: "IA",
-        react: "🤖",
-        desc: "Utilise l'API groq pour générer des réponses."
+        react: "🖤",
+        desc: "Utilise l'API Claude pour générer des réponses."
     },
     async (ms_org, ovl, cmd_options) => {
-        const { arg, ms, repondre, auteur_Message } = cmd_options;
+        const { arg, ms, repondre } = cmd_options;
 
         if (!arg.length) {
             return repondre("Veuillez entrer un prompt pour générer une réponse.");
         }
 
         const prompt = arg.join(" ");
-        const apiUrl = `https://fgsi.dpdns.org/api/ai/xai-grok?apikey=fgsiapi-1e8a0e22-6d&text=${encodeURIComponent(prompt)}&conversationId=${auteur_Message}`;
+        const apiUrl = `https://api-toxxic.zone.id/api/ai/claude?prompt=${encodeURIComponent(prompt)}`;
 
         try {
             const result = await axios.get(apiUrl);
-            const responseText = result.data?.data.answer || "Erreur de répone.";
+            const responseText = result.data?.data || "Erreur de réponse de l'API.";
             return repondre(responseText);
         } catch (error) {
-            console.error("Erreur groq :", error);
-            return repondre("Une erreur est survenue lors de l\'appel à l\'API.");
+            console.error("Erreur Claude :", error);
+            return repondre("Une erreur est survenue lors de l'appel à l'API.");
         }
     }
 );
