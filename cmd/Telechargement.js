@@ -206,66 +206,118 @@ ovlcmd(
   }
 );
 
+async function extractLink(arg, msg_Repondu) {
+  let finalArg = arg;
+  if (!finalArg.length && msg_Repondu) {
+    const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
+    if (typeof repTexte === "string") {
+      const mots = repTexte.split(/ +/);
+      const lien = mots.find(mot => mot.startsWith("https"));
+      if (lien) finalArg = [lien];
+    }
+  }
+  return finalArg.join(" ");
+}
+
 ovlcmd(
   {
-    nom_cmd: "ttdl",
+    nom_cmd: "tiktok",
     classe: "Telechargement",
     react: "📥",
-    alias: ["tiktok", "tikdl", "tiktokdl"],
-    desc: "Télécharger un média depuis TikTok"
+    alias: ["ttvideo", "tiktokvideo"],
+    desc: "Télécharger une vidéo TikTok sans filigrane"
   },
   async (ms_org, ovl, cmd_options) => {
-    let { arg, ms, auteur_Message, msg_Repondu } = cmd_options;
-    let finalArg = arg;
-    if (!finalArg.length && msg_Repondu) {
-      const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
-      if (typeof repTexte === "string") {
-        const mots = repTexte.split(/ +/);
-        const lien = mots.find(mot => mot.startsWith("https"));
-        if (lien) finalArg = [lien];
-      }
-    }
-    const videoLink = finalArg.join(" ");
-    if (!videoLink) return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok, par exemple : ttdl https://vm.tiktok.com/..." }, { quoted: ms });
+    let { arg, ms, msg_Repondu } = cmd_options;
+    const videoLink = await extractLink(arg, msg_Repondu);
+    if (!videoLink) return ovl.sendMessage(ms_org, { text: "Lien TikTok requis." }, { quoted: ms });
+
     try {
       const links = await ttdl(videoLink);
-      const options = [];
-      if (links.noWatermark) options.push({ type: "video", label: "Vidéo sans filigrane", url: links.noWatermark });
-      if (links.mp3) options.push({ type: "audio", label: "Audio (MP3)", url: links.mp3 });
-      if (links.slides.length > 0) options.push({ type: "images", label: "Images (slides)", urls: links.slides });
-      if (options.length === 0) return ovl.sendMessage(ms_org, { text: "Aucun fichier téléchargeable trouvé." }, { quoted: ms });
-      let choixValide = false;
-      let selection;
-      while (!choixValide) {
-        let msg = "📥 Options disponibles :\n";
-        options.forEach((opt, idx) => msg += `${idx + 1}. ${opt.label}\n`);
-        msg += "\nRépondez avec le numéro de l'option à télécharger.";
-        await ovl.sendMessage(ms_org, { text: msg }, { quoted: ms });
-        const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
-        const reponse = rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "";
-        const choix = parseInt(reponse.trim(), 10);
-        if (!isNaN(choix) && choix >= 1 && choix <= options.length) {
-          selection = options[choix - 1];
-          choixValide = true;
-        } else {
-          await ovl.sendMessage(ms_org, { text: "Choix invalide, veuillez réessayer." }, { quoted: ms });
-        }
+      if (!links.noWatermark) return ovl.sendMessage(ms_org, { text: "Vidéo non disponible." }, { quoted: ms });
+
+      const file = await axios.get(links.noWatermark, {
+        responseType: "arraybuffer",
+        headers: { "User-Agent": "GoogleBot" }
+      });
+
+      await ovl.sendMessage(
+        ms_org,
+        { video: Buffer.from(file.data), caption: "```Powered By OVL-MD-V2```" },
+        { quoted: ms }
+      );
+    } catch (e) {
+      ovl.sendMessage(ms_org, { text: `Erreur: ${e.message}` }, { quoted: ms });
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "tiktokaudio",
+    classe: "Telechargement",
+    react: "🎵",
+    alias: ["ttaudio", "ttmp3"],
+    desc: "Télécharger l'audio TikTok en MP3"
+  },
+  async (ms_org, ovl, cmd_options) => {
+    let { arg, ms, msg_Repondu } = cmd_options;
+    const videoLink = await extractLink(arg, msg_Repondu);
+    if (!videoLink) return ovl.sendMessage(ms_org, { text: "Lien TikTok requis." }, { quoted: ms });
+
+    try {
+      const links = await ttdl(videoLink);
+      if (!links.mp3) return ovl.sendMessage(ms_org, { text: "Audio non disponible." }, { quoted: ms });
+
+      const file = await axios.get(links.mp3, {
+        responseType: "arraybuffer",
+        headers: { "User-Agent": "GoogleBot" }
+      });
+
+      await ovl.sendMessage(
+        ms_org,
+        { audio: Buffer.from(file.data), mimetype: "audio/mp4" },
+        { quoted: ms }
+      );
+    } catch (e) {
+      ovl.sendMessage(ms_org, { text: `Erreur: ${e.message}` }, { quoted: ms });
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "tiktokimage",
+    classe: "Telechargement",
+    react: "🖼️",
+    alias: ["ttimg", "ttslides"],
+    desc: "Télécharger les images (slides) TikTok"
+  },
+  async (ms_org, ovl, cmd_options) => {
+    let { arg, ms, msg_Repondu } = cmd_options;
+    const videoLink = await extractLink(arg, msg_Repondu);
+    if (!videoLink) return ovl.sendMessage(ms_org, { text: "Lien TikTok requis." }, { quoted: ms });
+
+    try {
+      const links = await ttdl(videoLink);
+      if (!links.slides || links.slides.length === 0) {
+        return ovl.sendMessage(ms_org, { text: "Aucune image trouvée." }, { quoted: ms });
       }
-      if (selection.type === "video") {
-        const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
-        await ovl.sendMessage(ms_org, { video: Buffer.from(file.data), caption: "```Powered By OVL-MD-V2```" }, { quoted: ms });
-      } else if (selection.type === "audio") {
-        const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
-        await ovl.sendMessage(ms_org, { audio: Buffer.from(file.data), mimetype: "audio/mp4" }, { quoted: ms });
-      } else if (selection.type === "images") {
-        for (const imgUrl of selection.urls) {
-          const file = await axios.get(imgUrl, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
-          await ovl.sendMessage(ms_org, { image: Buffer.from(file.data) }, { quoted: ms });
-        }
+
+      for (const imgUrl of links.slides) {
+        const file = await axios.get(imgUrl, {
+          responseType: "arraybuffer",
+          headers: { "User-Agent": "GoogleBot" }
+        });
+
+        await ovl.sendMessage(
+          ms_org,
+          { image: Buffer.from(file.data) },
+          { quoted: ms }
+        );
       }
-    } catch (error) {
-      ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
-      console.error('Error:', error);
+    } catch (e) {
+      ovl.sendMessage(ms_org, { text: `Erreur: ${e.message}` }, { quoted: ms });
     }
   }
 );
