@@ -4,7 +4,6 @@ const { delay, DisconnectReason, jidDecode } = require("@whiskeysockets/baileys"
 let evt = require("../lib/ovlcmd");
 const pkg = require('../package');
 const config = require("../set");
-const { installpg } = require("../lib/plugin");
 const { manage_env } = require("../lib/manage_env");
 
 const decodeJid = (jid) => {
@@ -36,8 +35,6 @@ async function connection_update(con, ovl, main, startNextSession = null) {
             console.log("🔄 Synchronisation des variables d'environnement...");
             await manage_env();
             console.log("✅ Variables synchronisées.");
-
-            //await installpg();
         
             const commandes = fs.readdirSync(path.join(__dirname, "../cmd"))
                 .filter(f => path.extname(f).toLowerCase() === ".js");
@@ -52,8 +49,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
                     console.log(`  ✗ ${fichier} — erreur : ${e.message}`);
                 }
             }
-
-            console.log("Démarrage en cours .......");
+        
         await delay(1000);
             const start_msg = `╭───〔 🤖 𝙊𝙑𝙇 𝘽𝙊𝙏 〕───⬣
 │ ߷ *Etat*       ➜ Connecté ✅
