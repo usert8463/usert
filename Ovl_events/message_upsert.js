@@ -43,7 +43,6 @@ async function message_upsert(m, ovl) {
     if (!ms?.message) return;
     addMessage(ms.key.id, ms);
     const mtype = getContentType(ms.message);
-    console.log(ms.message?.[mtype]);
     const texte = {
       conversation: ms.message.conversation,
       imageMessage: ms.message.imageMessage?.caption,
@@ -72,12 +71,10 @@ async function message_upsert(m, ovl) {
 
     const msg_Repondu = ms.message?.[mtype]?.contextInfo?.quotedMessage;
     const quote = ms.message?.[mtype]?.contextInfo;
-    console.log(quote);
     const participantQuoted = ms.message?.[mtype]?.contextInfo?.participant;
-    const auteur_Msg_Repondu = participantQuoted == ovl.user.lid 
+    const auteur_Msg_Repondu = participantQuoted == decodeJid(ovl.user.lid)
      ? id_Bot 
      : await getJid(decodeJid(participantQuoted), ms_org, ovl);
-    console.log(auteur_Msg_Repondu);
     const mentionnes = ms.message?.[mtype]?.contextInfo?.mentionedJid || [];
     const mention_JID = await Promise.all(mentionnes.map(j => getJid(j, ms_org, ovl)));
 
