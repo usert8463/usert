@@ -21,38 +21,40 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 
     switch (connection) {
         case "connecting":
-            //console.log("🌍 Connexion en cours...");
+            console.log("🌍 Connexion en cours...");
             break;
 
         case "open":
-        /*    console.log(`
+            console.log(`
 ╭─────────────────╮
 │                          
 │    🎉  OVL BOT ONLINE 🎉   
 │                          
 ╰─────────────────╯
-`);*/
+`);
 
-            //console.log("🔄 Synchronisation des variables d'environnement...");
+            console.log("🔄 Synchronisation des variables d'environnement...");
             await manage_env();
-           // console.log("✅ Variables synchronisées.");
+            console.log("✅ Variables synchronisées.");
 
             await installpg();
         
             const commandes = fs.readdirSync(path.join(__dirname, "../cmd"))
                 .filter(f => path.extname(f).toLowerCase() === ".js");
 
-            //console.log("📂 Chargement des commandes :");
+            console.log("📂 Chargement des commandes :");
             for (const fichier of commandes) {
+              await delay(100);
                 try {
                     require(path.join(__dirname, "../cmd", fichier));
-                    //console.log(`  ✓ ${fichier}`);
+                    console.log(`  ✓ ${fichier}`);
                 } catch (e) {
-                   // console.log(`  ✗ ${fichier} — erreur : ${e.message}`);
+                    console.log(`  ✗ ${fichier} — erreur : ${e.message}`);
                 }
             }
 
-        await delay(5000);
+            console.log("Démarrage en cours .......");
+        await delay(1000);
             const start_msg = `╭───〔 🤖 𝙊𝙑𝙇 𝘽𝙊𝙏 〕───⬣
 │ ߷ *Etat*       ➜ Connecté ✅
 │ ߷ *Préfixe*    ➜ ${config.PREFIXE}
@@ -61,8 +63,6 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 │ ߷ *Version*    ➜ ${pkg.version}
 │ ߷ *Développeur*➜ Ainz
 ╰──────────────⬣`;
-
-            console.log(start_msg + "\n");
 
             await ovl.sendMessage(decodeJid(ovl.user.id), {
                 text: start_msg,
@@ -100,3 +100,4 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 }
 
 module.exports = connection_update;
+
