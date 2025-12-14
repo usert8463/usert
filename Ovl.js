@@ -35,7 +35,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     const instanceId = isPrincipale ? 'principale' : numero;
     const sessionData = await get_session(sessionId);
 
-    //await installpg();
+    await installpg();
     await restaureAuth(instanceId, sessionData.creds, sessionData.keys);
 
     const { state, saveCreds } = await useMultiFileAuthState(`./auth/${instanceId}`);
