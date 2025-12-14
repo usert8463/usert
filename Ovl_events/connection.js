@@ -37,7 +37,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
             await manage_env();
             console.log("✅ Variables synchronisées.");
 
-            await installpg();
+            //await installpg();
         
             const commandes = fs.readdirSync(path.join(__dirname, "../cmd"))
                 .filter(f => path.extname(f).toLowerCase() === ".js");
