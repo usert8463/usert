@@ -690,7 +690,7 @@ ovlcmd(
       const stickerBuffer = await new Sticker(response.data, {
         pack: config.STICKER_PACK_NAME,
         author: config.STICKER_AUTHOR_NAME,
-        type: StickerTypes.CROPPED,
+        type: StickerTypes.FULL,
         quality: 90,
         background: "transparent",
       }).toBuffer();
@@ -725,7 +725,7 @@ ovlcmd(
       const stickerBuffer = await new Sticker(response.data, {
         pack: config.STICKER_PACK_NAME,
         author: config.STICKER_AUTHOR_NAME,
-        type: StickerTypes.CROPPED,
+        type: StickerTypes.FULL,
         quality: 70,
         background: "transparent",
       }).toBuffer();
