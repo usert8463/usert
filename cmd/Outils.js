@@ -1092,24 +1092,27 @@ ovlcmd(
   }
 );
 
-
 ovlcmd(
   {
     nom_cmd: "support",
     classe: "Outils",
     react: "📩",
-    desc: "Lien vers le groupe de support du bot",
+    desc: "Lien vers les groupes de support du bot",
   },
   async (ms_org, ovl, cmd_options) => {
     const { verif_Groupe, repondre, auteur_Message, ms } = cmd_options;
 
-    const inviteLink = 'https://chat.whatsapp.com/HzhikAmOuYhFXGLmcyMo62';
-    const message = `📩 *OVL-MD SUPPORT*\nVoici le lien pour rejoindre le groupe:\n${inviteLink}`;
+    const inviteLinks = [
+      'https://chat.whatsapp.com/HzhikAmOuYhFXGLmcyMo62',
+      'https://chat.whatsapp.com/BP1oOMh0QvR7H3vvO9bRYK'
+    ];
+
+    const message = `📩 *OVL-MD SUPPORT*\nVoici les liens pour rejoindre les groupes de support:\n${inviteLinks.join("\n")}`;
 
     if (verif_Groupe) {
-      await repondre("📩 Le lien d'invitation a été envoyé en message privé.");
+      await repondre("📩 Les liens d'invitation ont été envoyés en message privé.");
       await ovl.sendMessage(auteur_Message, { text: message }, { quoted: ms });
-     } else {
+    } else {
       await ovl.sendMessage(ms_org, { text: message }, { quoted: ms });
     }
   }
