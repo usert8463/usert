@@ -52,6 +52,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
                 }
             }
 
+        await delay(5000);
             const start_msg = `╭───〔 🤖 𝙊𝙑𝙇 𝘽𝙊𝙏 〕───⬣
 │ ߷ *Etat*       ➜ Connecté ✅
 │ ߷ *Préfixe*    ➜ ${config.PREFIXE}
@@ -62,8 +63,6 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 ╰──────────────⬣`;
 
             console.log(start_msg + "\n");
-
-            await delay(5000);
 
             await ovl.sendMessage(decodeJid(ovl.user.id), {
                 text: start_msg,
