@@ -60,7 +60,7 @@ addAudioEffectCommand("haunting", '-af "apulsator=mode=sine:hz=0.5"');
 addAudioEffectCommand("distortion", '-af "acompressor=threshold=0.3:ratio=9:attack=200:release=1000"');
 addAudioEffectCommand("vintage", '-af "highpass=f=200, lowpass=f=3000"');
 addAudioEffectCommand("phaser", '-af "aphaser=in_gain=0.4"');
-addAudioEffectCommand("chorus", '-af "chorus=0.5:0.9:50|0.4:0.8:40"');
+addAudioEffectCommand("chorus", '-af "chorus=0.5:0.9:50:0.5:0.4:40"');
 addAudioEffectCommand("flanger", '-af "flanger"');
 addAudioEffectCommand("compressor", '-af "acompressor"');
 addAudioEffectCommand("surround", '-af "surround"');
