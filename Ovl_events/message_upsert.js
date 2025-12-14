@@ -41,6 +41,10 @@ async function message_upsert(m, ovl) {
     if (m.type !== 'notify') return;
     const ms = m.messages?.[0];
     if (!ms?.message) return;
+    console.log(ms);
+    console.log(ms.key);
+    console.log(ms.message);
+    console.log(ms.message?.[mtype]);
     addMessage(ms.key.id, ms);
     const mtype = getContentType(ms.message);
     const texte = {
@@ -71,6 +75,7 @@ async function message_upsert(m, ovl) {
 
     const msg_Repondu = ms.message?.[mtype]?.contextInfo?.quotedMessage;
     const quote = ms.message?.[mtype]?.contextInfo;
+    console.log(quote);
     const participantQuoted = ms.message?.[mtype]?.contextInfo?.participant;
     const auteur_Msg_Repondu = participantQuoted == ovl.user.lid 
      ? id_Bot 
