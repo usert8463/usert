@@ -289,9 +289,9 @@ ovlcmd(
     desc: "Affiche le menu du bot",
   },
   async (ms_org, ovl, cmd_options) => {
-      const { ms } = cmd_options;
+    const { ms, arg } = cmd_options;
+
     try {
-      const arg = cmd_options.arg;
       const seconds = process.uptime();
       const j = Math.floor(seconds / 86400);
       const h = Math.floor((seconds / 3600) % 24);
@@ -310,17 +310,20 @@ ovlcmd(
 
       const commandes = cmd;
       const cmd_classe = {};
-      commandes.forEach((cmd) => {
-        if (!cmd_classe[cmd.classe]) cmd_classe[cmd.classe] = [];
-        cmd_classe[cmd.classe].push(cmd);
+      commandes.forEach(c => {
+        if (!cmd_classe[c.classe]) cmd_classe[c.classe] = [];
+        cmd_classe[c.classe].push(c);
       });
 
-      const classesSorted = Object.keys(cmd_classe).sort((a, b) => a.localeCompare(b));
-      for (const classe of classesSorted) {
+      const classesSorted = Object.keys(cmd_classe).sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: "base" })
+      );
+
+      classesSorted.forEach(classe => {
         cmd_classe[classe].sort((a, b) =>
           a.nom_cmd.localeCompare(b.nom_cmd, undefined, { numeric: true })
         );
-      }
+      });
 
       let menu = "";
 
@@ -328,13 +331,13 @@ ovlcmd(
         menu += `╭──⟪ ${config.NOM_BOT} ⟫──╮
 ├ ߷ Préfixe       : ${config.PREFIXE}
 ├ ߷ Owner         : ${config.NOM_OWNER}
-├ ߷ Commandes  : ${commandes.length}
+├ ߷ Commandes     : ${commandes.length}
 ├ ߷ Uptime        : ${uptime.trim()}
-├ ߷ Date     : ${dateStr}
-├ ߷ Heure    : ${heureStr}
-├ ߷ Plateforme  : ${platform}
-├ ߷ Développeur : AINZ
-├ ߷ Version        : ${pkg.version}
+├ ߷ Date          : ${dateStr}
+├ ߷ Heure         : ${heureStr}
+├ ߷ Plateforme    : ${platform}
+├ ߷ Développeur   : AINZ
+├ ߷ Version       : ${pkg.version}
 ╰──────────────────╯\n\n`;
 
         menu += "╭───⟪ Catégories ⟫───╮\n";
@@ -343,34 +346,52 @@ ovlcmd(
         });
         menu += "╰───────────────────╯\n";
         menu += `
-💡 Tape *${config.PREFIXE}menu <numéro>* pour voir ses commandes.
-📌 Exemple : *${config.PREFIXE}menu 1*
+💡 Tape *${config.PREFIXE}menu <numéro>* ou *${config.PREFIXE}menu <nom>* pour voir les commandes d'une catégorie.
+💡 Tape *${config.PREFIXE}allmenu* pour voir la liste de toutes les commandes disponibles.
+📌 Exemples :
+• *${config.PREFIXE}menu 1*
+• *${config.PREFIXE}menu outils*
 
 > ©2025 OVL-MD-V2 By *AINZ*`;
+      } else if (arg[0].toLowerCase() === "allmenu") {
+        menu += `╭──⟪ Toutes les commandes ⟫──╮\n`;
+        commandes.forEach(c => {
+          menu += `├ ߷ [${c.classe}] ${c.nom_cmd}\n`;
+        });
+        menu += "╰───────────────────────────╯\n";
       } else {
-        const input = parseInt(arg[0], 10);
-        if (isNaN(input) || input < 1 || input > classesSorted.length) {
-          await ovl.sendMessage(ms_org, {
-            text: `Catégorie introuvable : ${arg[0]}`
-          }, { quoted: cmd_options.ms });
-          return;
+        const inputRaw = arg.join(" ").toLowerCase();
+        let classeSelectionnee = null;
+
+        const inputNumber = parseInt(inputRaw, 10);
+        if (!isNaN(inputNumber)) {
+          if (inputNumber < 1 || inputNumber > classesSorted.length) {
+            return ovl.sendMessage(ms_org, { text: `Catégorie introuvable : ${arg[0]}` }, { quoted: ms });
+          }
+          classeSelectionnee = classesSorted[inputNumber - 1];
+        } else {
+          classeSelectionnee = classesSorted.find(c =>
+            c.toLowerCase() === inputRaw
+          );
+          if (!classeSelectionnee) {
+            return ovl.sendMessage(ms_org, { text: `Catégorie introuvable : ${arg.join(" ")}` }, { quoted: ms });
+          }
         }
-        const classeSelectionnee = classesSorted[input - 1];
+
         menu += `╭────⟪ ${classeSelectionnee.toUpperCase()} ⟫────╮\n`;
-        cmd_classe[classeSelectionnee].forEach((cmd) => {
-          menu += `├ ߷ ${cmd.nom_cmd}\n`;
+        cmd_classe[classeSelectionnee].forEach(c => {
+          menu += `├ ߷ ${c.nom_cmd}\n`;
         });
         menu += `╰──────────────────╯\n\nTape *${config.PREFIXE}menu* pour revenir au menu principal.`;
       }
 
       const [settings] = await WA_CONF.findOrCreate({
-        where: { id: '1' },
-        defaults: { id: '1', mention: '1' }
+        where: { id: "1" },
+        defaults: { id: "1", mention: "1" }
       });
 
-      const themeId = settings.mention;
-      const themePath = './lib/theme.json';
-      const rawData = fs.readFileSync(themePath, 'utf8');
+      const themePath = "./lib/theme.json";
+      const rawData = fs.readFileSync(themePath, "utf8");
       const themes = JSON.parse(rawData);
 
       let lien;
@@ -378,12 +399,12 @@ ovlcmd(
       if (settings.mention.startsWith("[")) {
         const list = JSON.parse(settings.mention);
         lien = list[Math.floor(Math.random() * list.length)];
-      } else if (settings.mention.startsWith("http://") || settings.mention.startsWith("https://")) {
+      } else if (settings.mention.startsWith("http")) {
         const list = JSON.parse(settings.mention);
         lien = list[Math.floor(Math.random() * list.length)];
       } else {
         const selectedTheme = themes.find(t => t.id === settings.mention);
-        if (!selectedTheme) throw new Error("Thème introuvable");
+        if (!selectedTheme) throw new Error();
         lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
       }
 
@@ -400,15 +421,14 @@ ovlcmd(
             caption: stylize(menu)
           }, { quoted: ms });
         } else {
-          throw new Error("Aucun thème trouvé");
+          throw new Error();
         }
-      } catch (e) {
+      } catch {
         await ovl.sendMessage(ms_org, {
           text: stylize(menu)
         }, { quoted: ms });
       }
-
-    } catch (error) {
+    } catch {
       await ovl.sendMessage(ms_org, {
         text: "Une erreur est survenue lors de la génération du menu."
       }, { quoted: ms });
