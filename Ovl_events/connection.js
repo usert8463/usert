@@ -27,9 +27,9 @@ async function connection_update(con, ovl, main, startNextSession = null) {
         case "open":
             console.log(`
 ╭─────────────────╮
-│                          
-│    🎉  OVL BOT ONLINE 🎉   
-│                          
+│                      
+│    🎉  OVL BOT ONLINE 🎉    
+│                      
 ╰─────────────────╯
 `);
 
@@ -38,13 +38,13 @@ async function connection_update(con, ovl, main, startNextSession = null) {
             console.log("✅ Variables synchronisées.");
 
             await installpg();
-        
+
             const commandes = fs.readdirSync(path.join(__dirname, "../cmd"))
                 .filter(f => path.extname(f).toLowerCase() === ".js");
 
             console.log("📂 Chargement des commandes :");
             for (const fichier of commandes) {
-              await delay(100);
+                await delay(100);
                 try {
                     require(path.join(__dirname, "../cmd", fichier));
                     console.log(`  ✓ ${fichier}`);
@@ -52,8 +52,25 @@ async function connection_update(con, ovl, main, startNextSession = null) {
                     console.log(`  ✗ ${fichier} — erreur : ${e.message}`);
                 }
             }
-        
-        await delay(1000);
+
+            const pluginsDir = path.join(__dirname, "../plugins");
+            if (fs.existsSync(pluginsDir)) {
+                const pluginsFiles = fs.readdirSync(pluginsDir)
+                    .filter(f => path.extname(f).toLowerCase() === ".js");
+
+                console.log("📂 Chargement des plugins :");
+                for (const fichier of pluginsFiles) {
+                    await delay(100);
+                    try {
+                        require(path.join(pluginsDir, fichier));
+                        console.log(`  ✓ ${fichier}`);
+                    } catch (e) {
+                        console.log(`  ✗ ${fichier} — erreur : ${e.message}`);
+                    }
+                }
+            }
+
+            await delay(1000);
             const start_msg = `╭───〔 🤖 𝙊𝙑𝙇 𝘽𝙊𝙏 〕───⬣
 │ ߷ *Etat*       ➜ Connecté ✅
 │ ߷ *Préfixe*    ➜ ${config.PREFIXE}
@@ -76,11 +93,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
             });
 
             await delay(10000);
-            
-            if (startNextSession) {
-                await startNextSession();
-            }
-            
+            if (startNextSession) await startNextSession();
             break;
 
         case "close":
