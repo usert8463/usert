@@ -40,16 +40,9 @@ async function message_upsert(m, ovl) {
   try {
     if (m.type !== 'notify') return;
     const ms = m.messages?.[0];
-if (!ms?.message) return;
-
-const mtype = getContentType(ms.message);
-let participantQuoted = ms.message?.[mtype]?.contextInfo?.participant;
-
-// Remplacement conditionnel
-if (participantQuoted && participantQuoted === decodeJid(ovl.user.lid)) {
-    participantQuoted = id_Bot;
-}
+    if (!ms?.message) return;
     addMessage(ms.key.id, ms);
+    const mtype = getContentType(ms.message);
     const texte = {
       conversation: ms.message.conversation,
       imageMessage: ms.message.imageMessage?.caption,
