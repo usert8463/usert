@@ -1,22 +1,3 @@
-const originalLog = console.log;
-const originalError = console.error;
-
-console.log = (...args) => {
-  const msg = args.join(' ');
-  if (msg.includes('Closing') && msg.includes('session')) return;
-  originalLog(...args);
-};
-
-console.error = (...args) => {
-  const msg = args.join(' ');
-  if (
-    msg.includes('Failed to decrypt message') ||
-    msg.includes('Bad MAC') ||
-    msg.includes('Connection Closed')
-  ) return;
-  originalError(...args);
-};
-
 const fs = require('fs');
 const path = require('path');
 const pino = require('pino');
