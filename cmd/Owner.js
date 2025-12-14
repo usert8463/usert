@@ -1453,34 +1453,37 @@ ovlcmd({
 
 
 ovlcmd({
-  nom_cmd: "pgremove",
-  classe: "Owner",
-  react: "🗑️",
-  desc: "Supprime un plugin installé par nom ou tape `remove all` pour tous.",
+  nom_cmd: "pgremove",
+  classe: "Owner",
+  react: "🗑️",
+  desc: "Supprime un plugin installé par nom ou tape `remove all` pour tous.",
   alias: ["pgr"]
 }, async (ms, ovl, { arg, repondre }) => {
-  const input = arg[0];
-  if (!input) return repondre("❌ Utilise `remove nom_plugin` ou `remove all`.");
+  const input = arg[0];
+  if (!input) return repondre("❌ Utilise `remove nom_plugin` ou `remove all`.");
 
-  if (input === 'all') {
-    const plugins = await Plugin.findAll();
-    for (const p of plugins) {
-      const filePath = path.join(__dirname, '../plugins', `${p.name}.js`) 
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  if (input === "all") {
+    const plugins = await Plugin.findAll();
+
+    for (const p of plugins) {
+      const filePath = path.join(__dirname, "../plugins", `${p.name}.js`);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
       await Plugin.destroy({ where: { name: p.name } });
-    }
-    repondre("🗑️ Tous les plugins ont été supprimés.");
-    return await reloadCommands;
-  }
+    }
 
-  const plugin = await Plugin.findOne({ where: { name: input } });
-  if (!plugin) return repondre("❌ Plugin non trouvé dans la base.");
+    await reloadCommands();
+    return repondre("🗑️ Tous les plugins ont été supprimés.");
+  }
 
-  const filePath = path.join(__dirname, '../plugins', `${plugin.name}.js`);
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  await Plugin.destroy({ where: { name: input } });
-  repondre(`🗑️ Plugin *${input}* supprimé.`);
-  return await reloadCommands();
+  const plugin = await Plugin.findOne({ where: { name: input } });
+  if (!plugin) return repondre("❌ Plugin non trouvé dans la base.");
+
+  const filePath = path.join(__dirname, "../plugins", `${plugin.name}.js`);
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  await Plugin.destroy({ where: { name: input } });
+
+  await reloadCommands();
+  return repondre(`🗑️ Plugin *${input}* supprimé.`);
 });
 
 ovlcmd({
