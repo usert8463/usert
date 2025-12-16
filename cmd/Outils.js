@@ -628,7 +628,7 @@ ovlcmd(
         desc: "Affiche un message envoyé en vue unique en inbox",
     },
     async (ms_org, ovl, cmd_options) => {
-        const { ms, msg_Repondu, repondre } = cmd_options;
+        const { ms, id_Bot, msg_Repondu, repondre } = cmd_options;
 
         if (!msg_Repondu) {
             return repondre("Veuillez mentionner un message en vue unique.");
@@ -658,7 +658,7 @@ ovlcmd(
             if (vue_Unique_Message.imageMessage) {
                 media = await ovl.dl_save_media_ms(vue_Unique_Message.imageMessage);
                 await ovl.sendMessage(
-                    ovl.user.id,
+                    id_Bot,
                     { image: { url: media }, caption: vue_Unique_Message.imageMessage.caption || "" },
                     options
                 );
@@ -666,7 +666,7 @@ ovlcmd(
             } else if (vue_Unique_Message.videoMessage) {
                 media = await ovl.dl_save_media_ms(vue_Unique_Message.videoMessage);
                 await ovl.sendMessage(
-                    ovl.user.id,
+                    id_Bot,
                     { video: { url: media }, caption: vue_Unique_Message.videoMessage.caption || "" },
                     options
                 );
@@ -674,7 +674,7 @@ ovlcmd(
             } else if (vue_Unique_Message.audioMessage) {
                 media = await ovl.dl_save_media_ms(vue_Unique_Message.audioMessage);
                 await ovl.sendMessage(
-                    ovl.user.id,
+                    id_Bot,
                     { audio: { url: media }, mimetype: "audio/mp4", ptt: false },
                     options
                 );
