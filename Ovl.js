@@ -7,7 +7,8 @@ const {
   makeCacheableSignalKeyStore,
   Browsers,
   delay,
-  useMultiFileAuthState
+  useMultiFileAuthState,
+  jidDecode
 } = require('@whiskeysockets/baileys');
 
 const { getMessage } = require('./lib/store');
