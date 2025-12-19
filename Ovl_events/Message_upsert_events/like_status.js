@@ -1,6 +1,6 @@
 const { WA_CONF } = require('../../DataBase/wa_conf');
 
-async function like_status(ovl, ms, ms_org, id_Bot) {
+async function like_status(ovl, ms, ms_org, id_Bot, auteur_Message) {
     try {
         const settings = await WA_CONF.findOne({ where: { id: '1' } });
         if (!settings) return;
@@ -15,7 +15,7 @@ async function like_status(ovl, ms, ms_org, id_Bot) {
                     text: emoji
                 }
             }, {
-                statusJidList: [ms.key.participant, id_Bot],
+                statusJidList: [auteur_Message, id_Bot],
                 broadcast: true
             });
         }
