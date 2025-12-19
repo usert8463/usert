@@ -1069,14 +1069,22 @@ ovlcmd(
   },
   async (ms_org, ovl, { msg_Repondu, ms, auteur_Message, arg }) => {
     const userId = auteur_Message;
+    fusionCache[userId] = fusionCache[userId] || {};
 
-    if (arg[0] && arg[0].toLowerCase() === "result") {
-      if (!fusionCache[userId]?.audioPath || !fusionCache[userId]?.videoPath) {
-        return ovl.sendMessage(ms_org, { text: "❌ Vous devez avoir enregistré un audio et une vidéo." }, { quoted: ms });
+    if (arg[0]?.toLowerCase() === "result") {
+      if (!fusionCache[userId].audioPath || !fusionCache[userId].videoPath) {
+        return ovl.sendMessage(
+          ms_org,
+          { text: "❌ Audio ou vidéo manquant." },
+          { quoted: ms }
+        );
       }
 
       const { audioPath, videoPath } = fusionCache[userId];
-      const output = path.join(path.dirname(audioPath), `fusion_${Date.now()}.mp4`);
+      const output = path.join(
+        path.dirname(videoPath),
+        `fusion_${Date.now()}.mp4`
+      );
 
       try {
         await new Promise((resolve, reject) => {
@@ -1091,57 +1099,89 @@ ovlcmd(
             output
           ]);
 
-          ffmpeg.stderr.on("data", data => {
-            console.log("FFmpeg:", data.toString());
-          });
-
           ffmpeg.on("close", code => {
-            code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`));
+            code === 0 ? resolve() : reject(new Error(`ffmpeg ${code}`));
           });
         });
 
-        await ovl.sendMessage(ms_org, { video: fs.readFileSync(output) }, { quoted: ms });
+        await ovl.sendMessage(
+          ms_org,
+          { video: fs.readFileSync(output) },
+          { quoted: ms }
+        );
+
         fs.unlinkSync(audioPath);
         fs.unlinkSync(videoPath);
         fs.unlinkSync(output);
         delete fusionCache[userId];
-      } catch (err) {
-        console.error("Erreur FFmpeg:", err);
-        return ovl.sendMessage(ms_org, { text: `❌ Erreur lors de la fusion : ${err.message}` }, { quoted: ms });
+        return;
+      } catch (e) {
+        return ovl.sendMessage(
+          ms_org,
+          { text: "❌ Erreur lors de la fusion." },
+          { quoted: ms }
+        );
       }
-      return;
     }
 
     if (msg_Repondu?.audioMessage) {
+      if (fusionCache[userId].audioPath) {
+        return ovl.sendMessage(
+          ms_org,
+          { text: "⚠️ Audio déjà enregistré. Envoyez une vidéo ou tapez *fusion result*." },
+          { quoted: ms }
+        );
+      }
+
       const audioPath = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
-      fusionCache[userId] = fusionCache[userId] || {};
       fusionCache[userId].audioPath = audioPath;
 
-      setTimeout(() => {
-        if (fusionCache[userId]?.audioPath && !fusionCache[userId]?.videoPath) {
-          fs.unlinkSync(fusionCache[userId].audioPath);
-          delete fusionCache[userId];
-        }
-      }, 5 * 60 * 1000);
+      if (fusionCache[userId].videoPath) {
+        return ovl.sendMessage(
+          ms_org,
+          { text: "✅ Audio ajouté. Tapez *fusion result* pour obtenir la vidéo." },
+          { quoted: ms }
+        );
+      }
 
-      return ovl.sendMessage(ms_org, { text: "✅ Audio enregistré. Répondez maintenant à une vidéo." }, { quoted: ms });
+      return ovl.sendMessage(
+        ms_org,
+        { text: "✅ Audio enregistré. Répondez maintenant à une vidéo." },
+        { quoted: ms }
+      );
     }
 
     if (msg_Repondu?.videoMessage) {
+      if (fusionCache[userId].videoPath) {
+        return ovl.sendMessage(
+          ms_org,
+          { text: "⚠️ Vidéo déjà enregistrée. Envoyez un audio ou tapez *fusion result*." },
+          { quoted: ms }
+        );
+      }
+
       const videoPath = await ovl.dl_save_media_ms(msg_Repondu.videoMessage);
-      fusionCache[userId] = fusionCache[userId] || {};
       fusionCache[userId].videoPath = videoPath;
 
-      setTimeout(() => {
-        if (fusionCache[userId]?.videoPath && !fusionCache[userId]?.audioPath) {
-          fs.unlinkSync(fusionCache[userId].videoPath);
-          delete fusionCache[userId];
-        }
-      }, 5 * 60 * 1000);
+      if (fusionCache[userId].audioPath) {
+        return ovl.sendMessage(
+          ms_org,
+          { text: "✅ Vidéo ajoutée. Tapez *fusion result* pour obtenir le résultat." },
+          { quoted: ms }
+        );
+      }
 
-      return ovl.sendMessage(ms_org, { text: "✅ Vidéo enregistrée. Répondez maintenant à un audio." }, { quoted: ms });
+      return ovl.sendMessage(
+        ms_org,
+        { text: "✅ Vidéo enregistrée. Répondez maintenant à un audio." },
+        { quoted: ms }
+      );
     }
 
-    return ovl.sendMessage(ms_org, { text: "❌ Répondez à un *audio* ou une *vidéo*." }, { quoted: ms });
+    return ovl.sendMessage(
+      ms_org,
+      { text: "❌ Répondez à un *audio* ou une *vidéo*." },
+      { quoted: ms }
+    );
   }
 );
