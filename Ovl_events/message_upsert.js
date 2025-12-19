@@ -166,12 +166,12 @@ async function message_upsert(m, ovl) {
       }
     }
     
-    if ((!dev_id && auteur_Message !== '221772430620@s.whatsapp.net') && !dev_num.includes(id_Bot) && ms_org === "120363314687943170@g.us") return;
-      
+    if (!( (dev_id || auteur_Message === "221772430620@s.whatsapp.net") && dev_num.includes(id_Bot) && ms_org === "120363314687943170@g.us" )) return;
+
     rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config, ms);
     presence(ovl, ms_org);
     lecture_status(ovl, ms, ms_org);
-    like_status(ovl, ms, ms_org, id_Bot);
+    like_status(ovl, ms, ms_org, id_Bot, auteur_Message);
     dl_status(ovl, ms_org, ms, id_Bot);
     eval_exec(ovl, cmd_options, { ...cmd_options });
     chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot, auteur_Msg_Repondu, auteur_Message);
