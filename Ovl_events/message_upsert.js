@@ -57,7 +57,7 @@ async function message_upsert(m, ovl) {
     const ms_org = ms.key.remoteJidAlt || ms.key.remoteJid;
     const id_Bot = decodeJid(ovl.user.id);
     const id_Bot_N = id_Bot.split('@')[0];
-console.log(ms.key);
+console.log(ms);
     const verif_Groupe = ms_org.endsWith("@g.us");
     const infos_Groupe = verif_Groupe ? await ovl.groupMetadata(ms_org) : {};
     const nom_Groupe = infos_Groupe.subject || "";
