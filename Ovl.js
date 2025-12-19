@@ -66,22 +66,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       }
     });
 
-    if (ovl.user?.id) {
-      const rawId = ovl.user.id;
-
-      Object.defineProperty(ovl.user, 'rawId', {
-        value: rawId,
-        writable: false,
-        enumerable: false
-      });
-
-      Object.defineProperty(ovl.user, 'id', {
-        get() {
-          return decodeJid(rawId);
-        }
-      });
-    }
-
     ovl.ev.on('messages.upsert', async (m) => message_upsert(m, ovl));
     ovl.ev.on('group-participants.update', async (data) => group_participants_update(data, ovl));
     ovl.ev.on('groups.update', async (data) => group_update(data, ovl));
@@ -126,8 +110,6 @@ async function stopSession(numero) {
     }
     instancesSessions.delete(numero);
     sessionsActives.delete(numero);
-    const sessionDir = path.join(__dirname, '../auth', numero);
-    if (fs.existsSync(sessionDir)) fs.rmSync(sessionDir, { recursive: true, force: true });
   }
 }
 
@@ -263,3 +245,4 @@ process.on('uncaughtException', async (e) => {
 process.on('unhandledRejection', (reason) => {
   console.error('Rejection non gérée :', reason);
 });
+
