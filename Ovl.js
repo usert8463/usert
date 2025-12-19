@@ -7,8 +7,7 @@ const {
   makeCacheableSignalKeyStore,
   Browsers,
   delay,
-  useMultiFileAuthState,
-  jidDecode
+  useMultiFileAuthState
 } = require('@whiskeysockets/baileys');
 
 const { getMessage } = require('./lib/store');
@@ -29,15 +28,6 @@ const { getSecondAllSessions } = require('./DataBase/connect');
 const MAX_SESSIONS = 15;
 const sessionsActives = new Set();
 const instancesSessions = new Map();
-
-const decodeJid = (jid) => {
-  if (!jid) return jid;
-  if (/:\d+@/gi.test(jid)) {
-    const d = jidDecode(jid) || {};
-    return (d.user && d.server && `${d.user}@${d.server}`) || jid;
-  }
-  return jid;
-};
 
 async function startGenericSession({ numero, isPrincipale = false, sessionId = null }) {
   try {
