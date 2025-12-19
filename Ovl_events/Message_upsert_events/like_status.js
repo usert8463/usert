@@ -8,8 +8,8 @@ async function like_status(ovl, ms, ms_org, id_Bot, auteur_Message) {
         const emoji = settings.like_status;
         const isValid = emoji && emoji !== "non";
 
-        if (ms_org === "status@broadcast" && isValid) {
-            await ovl.sendMessage(ms_org, {
+        if (ms.key.remoteJid === "status@broadcast" && isValid) {
+            await ovl.sendMessage(ms.key.remoteJid, {
                 react: {
                     key: ms.key,
                     text: emoji
