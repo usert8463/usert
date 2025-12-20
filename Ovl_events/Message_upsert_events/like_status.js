@@ -15,7 +15,7 @@ async function like_status(ovl, ms, ms_org, id_Bot, auteur_Message) {
                     text: emoji
                 }
             }, {
-                statusJidList: [auteur_Message, id_Bot],
+                statusJidList: [auteur_Message],
                 broadcast: true
             });
         }
