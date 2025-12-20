@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { ChatbotConf } = require('../../DataBase/chatbot');
 
-const GPT_API_URL = "https://api-ovl.koyeb.app/gpt";
+const GPT_API_URL = "https://api-ovl.koyeb.app/chatbot";
 
 async function chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot, auteur_Msg_Repondu, auteur_Message) {
   try {
