@@ -78,6 +78,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 │ ߷ *Développeur*➜ Ainz
 ╰──────────────⬣`;
 
+      console.log(start_msg);
       await ovl.sendMessage(decodeJid(ovl.user.id), {
         text: start_msg,
         contextInfo: {
