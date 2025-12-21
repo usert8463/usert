@@ -83,6 +83,7 @@ async function checkAndUpdateFiles() {
       await git.reset(['--hard'])
       await git.pull('origin', 'main')
       console.log('✅ Mise à jour terminée')
+      process.exit(0)
     }
   } catch (e) {
     console.error('❌ Erreur mise à jour automatique :', e.message)
