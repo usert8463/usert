@@ -876,27 +876,33 @@ ovlcmd(
 );
 
 ovlcmd(
-    {
-        nom_cmd: "restart",
-        classe: "Owner",
-        desc: "Redémarre le bot via PM2"
-    },
-    async (ms_org, ovl, opt) => {
-        const { ms, prenium_id } = opt;
+  {
+    nom_cmd: "restart",
+    classe: "Owner",
+    desc: "Redémarre le bot"
+  },
+  async (ms_org, ovl, opt) => {
+    const { ms, prenium_id } = opt
 
-        if (!prenium_id) {
-            return ovl.sendMessage(ms_org, { text: "Vous n'avez pas la permission d'utiliser cette commande." }, { quoted: ms });
-        }
-
-        await ovl.sendMessage(ms_org, { text: "Redémarrage du bot en cours..." }, { quoted: ms });
-
-        exec('pm2 restart all', (err, stdout, stderr) => {
-            if (err) {
-                return ovl.sendMessage(ms_org, { text: `Erreur lors du redémarrage :\n${err.message}` }, { quoted: ms });
-            }
-        });
+    if (!prenium_id) {
+      return ovl.sendMessage(
+        ms_org,
+        { text: "Vous n'avez pas la permission d'utiliser cette commande." },
+        { quoted: ms }
+      )
     }
-);
+
+    await ovl.sendMessage(
+      ms_org,
+      { text: "♻️ Redémarrage du bot en cours..." },
+      { quoted: ms }
+    )
+
+    setTimeout(() => {
+      process.exit(0)
+    }, 1000)
+  }
+)
 
 ovlcmd(
   {
