@@ -2,7 +2,6 @@ const fs = require('fs')
 const path = require('path')
 const pino = require('pino')
 const axios = require('axios')
-const simpleGit = require('simple-git')
 const { exec } = require('child_process')
 const {
   default: makeWASocket,
@@ -31,8 +30,6 @@ const MAX_SESSIONS = 15
 const sessionsActives = new Set()
 const instancesSessions = new Map()
 
-const git = simpleGit()
-
 console.info = function (...args) {
   const msg = args.join(' ')
   if (!msg.startsWith('Closing') && !msg.startsWith('Removing old')) {
@@ -55,38 +52,6 @@ console.error = function (...args) {
     !msg.includes('`punycode`')
   ) {
     console.log(...args)
-  }
-}
-
-async function checkAndUpdateFiles() {
-  try {
-    await git.cwd(__dirname)
-    const remotes = await git.getRemotes()
-
-    if (!remotes.some(r => r.name === 'origin')) {
-      await git.addRemote('origin', 'https://github.com/Ainz-devs/OVL-MD-V2.git')
-    }
-
-    await git.fetch()
-    const branches = await git.branch(['-r'])
-    if (!branches.all.includes('origin/main')) return
-
-    const status = await git.status()
-
-    if (
-      status.modified.length ||
-      status.not_added.length ||
-      status.deleted.length ||
-      status.created.length
-    ) {
-      console.log('⚠️ Mise à jour automatique en cours...')
-      await git.reset(['--hard'])
-      await git.pull('origin', 'main')
-      console.log('✅ Mise à jour terminée')
-      process.exit(0)
-    }
-  } catch (e) {
-    console.error('❌ Erreur mise à jour automatique :', e.message)
   }
 }
 
@@ -245,7 +210,6 @@ async function startPrincipalSession() {
 }
 
 ;(async () => {
-  await checkAndUpdateFiles()
   await startPrincipalSession()
 })()
 
