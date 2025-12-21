@@ -169,46 +169,51 @@ ovlcmd(
     classe: "Système",
     react: "♻️",
     desc: "Met à jour le bot automatiquement.",
-    alias: ["maj"],
+    alias: ["maj"]
   },
   async (ms_org, ovl, { repondre, prenium_id }) => {
     try {
       if (!prenium_id) {
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+        return ovl.sendMessage(
+          ms_org,
+          { text: "Vous n'avez pas le droit d'exécuter cette commande." },
+          { quoted: ms }
+        )
       }
-      await git.init();
-      const remotes = await git.getRemotes();
+
+      const remotes = await git.getRemotes()
       if (!remotes.some(r => r.name === "origin")) {
-        await git.addRemote("origin", "https://github.com/Ainz-devs/OVL-MD-V2");
+        await git.addRemote("origin", "https://github.com/Ainz-devs/OVL-MD-V2.git")
       }
 
-      await git.fetch();
-      const remoteBranch = "origin/main";
-      const branches = await git.branch(["-r"]);
-      if (!branches.all.includes(remoteBranch)) {
-        return repondre("❌ Branche distante introuvable.");
+      await git.fetch()
+      const branches = await git.branch(["-r"])
+      if (!branches.all.includes("origin/main")) {
+        return repondre("❌ Branche distante introuvable.")
       }
 
-      const logs = await git.log({ from: "main", to: remoteBranch });
-      if (!(logs.total > 0)) {
-        return repondre("✅ Le bot est déjà à jour.");
+      const status = await git.status()
+      if (
+        !status.behind &&
+        !status.modified.length &&
+        !status.created.length &&
+        !status.deleted.length
+      ) {
+        return repondre("✅ Le bot est déjà à jour.")
       }
 
-      await repondre("⏳ Téléchargement des dernières modifications...");
-      await git.checkout("main");
-      await git.pull("origin", "main");
+      await repondre("⏳ Téléchargement des dernières modifications...")
+      await git.reset(["--hard"])
+      await git.pull("origin", "main")
 
-      await repondre("✅ Mise à jour réussie ! Redémarrage...");
-      exec("pm2 restart ovl", (err) => {
-        if (err) {
-          console.error("❌ Erreur PM2 :", err);
-        } else {
-          console.log("La Mise à jour est terminée.");
-        }
-      });
+      await repondre("✅ Mise à jour réussie. Redémarrage en cours...")
+
+      setTimeout(() => {
+        process.exit(0)
+      }, 1000)
     } catch (err) {
-      console.error("❌ Erreur de mise à jour :", err);
-      await repondre("❌ Mise à jour échouée.");
+      console.error("❌ Erreur de mise à jour :", err)
+      await repondre("❌ Mise à jour échouée.")
     }
   }
-);
+)
