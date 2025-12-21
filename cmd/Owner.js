@@ -890,7 +890,7 @@ ovlcmd(
 
         await ovl.sendMessage(ms_org, { text: "Redémarrage du bot en cours..." }, { quoted: ms });
 
-        exec('pm2 restart ovl', (err, stdout, stderr) => {
+        exec('pm2 restart all', (err, stdout, stderr) => {
             if (err) {
                 return ovl.sendMessage(ms_org, { text: `Erreur lors du redémarrage :\n${err.message}` }, { quoted: ms });
             }
