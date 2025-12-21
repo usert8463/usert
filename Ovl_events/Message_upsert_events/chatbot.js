@@ -30,18 +30,9 @@ async function chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bo
 
     if (!(localActif || globalActif)) return;
 
-    const response = await axios.get(GPT_API_URL, {
-      params: {
-        texte,
-        auteur: auteur_Message,
-        groupe: verif_Groupe ? "true" : "false",
-        jid: ms_org
-      },
-      timeout: 20000
-    });
-
+    const response = await axios.get(`${GPT_API_URL}?texte=${encodeURIComponent(texte)}`);
     const finalResponse = response.data?.response;
-
+    
     if (finalResponse) {
       return repondre(finalResponse);
     }
