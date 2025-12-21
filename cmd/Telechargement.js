@@ -224,7 +224,7 @@ ovlcmd(
     nom_cmd: "tiktok",
     classe: "Telechargement",
     react: "📥",
-    alias: ["ttvideo", "tiktokvideo"],
+    alias: ["ttdl", "tiktokdl", "ttvideo", "tiktokvideo"],
     desc: "Télécharger une vidéo TikTok sans filigrane"
   },
   async (ms_org, ovl, cmd_options) => {
