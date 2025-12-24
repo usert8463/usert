@@ -5,7 +5,7 @@
   "main": "Ovl.js",
   "type": "commonjs",
   "scripts": {
-    "start": "pm2 start Ovl.js --attach --name ovl",
+    "start": "node Ovl.js",
     "stop": "pm2 stop all",
     "Ovl": "pm2 start Ovl.js --attach --name ovl"
   },
