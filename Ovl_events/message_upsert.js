@@ -62,7 +62,7 @@ async function message_upsert(m, ovl) {
     const infos_Groupe = verif_Groupe ? await ovl.groupMetadata(ms_org) : {};
     const nom_Groupe = infos_Groupe.subject || "";
     const mbre_membre = verif_Groupe ? infos_Groupe.participants : [];
-    const groupe_Admin = mbre_membre.filter(p => p.admin).map(p => p.phoneNumber);
+    const groupe_Admin = mbre_membre.filter(p => p.admin).map(p => p.jid);
     const verif_Ovl_Admin = verif_Groupe && groupe_Admin.includes(id_Bot);
 
     const auteur_Message = verif_Groupe
@@ -142,7 +142,7 @@ async function message_upsert(m, ovl) {
       }
       
       if (!isStickerCmd) {
-        await ovl.sendMessage(ms_org, { react: { text: cd.react || "🎐", key: ms.key } });
+        await ovl.sendMessage(ms_org, { react: { text: cd.react || "🪄", key: ms.key } });
       }
       await cd.fonction(ms_org, ovl, cmd_options);
     };
@@ -183,7 +183,7 @@ async function message_upsert(m, ovl) {
     antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe, verif_Admin, verif_Ovl_Admin);
     autoread_msg(ovl, ms.key);
-    autoreact_msg(ovl, ms);
+    autoreact_msg(ovl, ms, ms_org, dev_id, dev_num, id_Bot, auteur_Message);
 
     for (const cmd of evt.func) {
       try {
