@@ -67,7 +67,7 @@ async function message_upsert(m, ovl) {
 
     const auteur_Message = verif_Groupe
       ? await getJid(decodeJid(ms.key.participantAlt || ms.key.participant), ms_org, ovl)
-      : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJidAlt || ms.key.remoteJid);
+      : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJidAlt || ms.key.senderPn || ms.key.remoteJid);
 
     const msg_Repondu = ms.message?.[mtype]?.contextInfo?.quotedMessage;
     const quote = ms.message?.[mtype]?.contextInfo;
