@@ -30,7 +30,7 @@ async function getJid(lid, ms_org, ovl, attempt = 0) {
     const participant = metadata.participants.find(p => p.id == lid);
     if (!participant) return null;
 
-    const jid = participant.phoneNumber;
+    const jid = participant.jid || participant.phoneNumber;
     cache[lid] = jid;
     writeCache(cache);
 
