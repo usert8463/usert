@@ -8,6 +8,7 @@ const {
   makeCacheableSignalKeyStore,
   Browsers,
   delay,
+  fetchLatestBaileysVersion,
   useMultiFileAuthState
 } = require('@whiskeysockets/baileys')
 
@@ -63,8 +64,10 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     await restaureAuth(instanceId, sessionData.creds, sessionData.keys)
 
     const { state, saveCreds } = await useMultiFileAuthState(`./auth/${instanceId}`)
-
+    const { version } = await fetchLatestBaileysVersion();
+    
     const ovl = makeWASocket({
+      version,
       auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(
