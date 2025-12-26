@@ -41,35 +41,58 @@ ovlcmd(
 );
 
 ovlcmd(
-    {
-        nom_cmd: "ship",
-        classe: "Fun",
-        desc: "Test de compatibilité entre deux personnes",
-        alias: ["match"],
-    },
-    async (ms_org, ovl, cmd_options) => {
-        const { auteur_Msg_Repondu, auteur_Message, arg, ms,  getJid } = cmd_options;
-        const tag = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
-     const tags = await getJid(tag, ms_org, ovl);
-       if (!arg[0]) {
-            return await ovl.sendMessage(ms_org, { text: "Mentionne une personne" }, { quoted: ms });
-         }
-        const randomPercentage = Math.floor(Math.random() * 101);
-        let comment;
-        if (randomPercentage <= 30) {
-            comment = "💔 Pas vraiment compatibles... 😢";
-        } else if (randomPercentage <= 70) {
-            comment = "🤔 Il y a du potentiel, mais cela demande du travail !";
-        } else {
-            comment = "💖 Vous êtes faits l'un pour l'autre ! 🌹";
+  {
+    nom_cmd: "ship",
+    classe: "Fun",
+    desc: "Test de compatibilité entre deux personnes",
+    alias: ["match"],
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { auteur_Msg_Repondu, auteur_Message, arg, ms, getJid } = cmd_options;
 
-        }
+    let user1;
+    let user2;
 
-        await ovl.sendMessage(ms_org, {
-            text: `💘 *Ship*\n\n @${tags.split("@")[0]} & @${auteur_Message.split("@")[0]}, ${comment}.\n💖Compatibilité :*${randomPercentage}%*`,
-            mentions: [tags, auteur_Message],
-        }, { quoted: ms });
+    if (arg.length >= 2 && arg[0].includes("@") && arg[1].includes("@")) {
+      user1 = `${arg[0].replace("@", "")}@lid`;
+      user2 = `${arg[1].replace("@", "")}@lid`;
+    } else if (arg.length >= 1 && arg[0].includes("@") && auteur_Msg_Repondu) {
+      user1 = `${arg[0].replace("@", "")}@lid`;
+      user2 = auteur_Msg_Repondu;
+    } else if (auteur_Msg_Repondu) {
+      user1 = auteur_Message;
+      user2 = auteur_Msg_Repondu;
+    } else {
+      return await ovl.sendMessage(
+        ms_org,
+        { text: "Mentionne deux personnes" },
+        { quoted: ms }
+      );
     }
+
+    const tag1 = await getJid(user1, ms_org, ovl);
+    const tag2 = await getJid(user2, ms_org, ovl);
+
+    const randomPercentage = Math.floor(Math.random() * 101);
+
+    let comment;
+    if (randomPercentage <= 30) {
+      comment = "💔 Pas vraiment compatibles... 😢";
+    } else if (randomPercentage <= 70) {
+      comment = "🤔 Il y a du potentiel, mais cela demande du travail !";
+    } else {
+      comment = "💖 Vous êtes faits l'un pour l'autre ! 🌹";
+    }
+
+    await ovl.sendMessage(
+      ms_org,
+      {
+        text: `💘 *Ship*\n\n@${tag1.split("@")[0]} & @${tag2.split("@")[0]}, ${comment}\n💖 Compatibilité : *${randomPercentage}%*`,
+        mentions: [tag1, tag2],
+      },
+      { quoted: ms }
+    );
+  }
 );
  
 ovlcmd(
