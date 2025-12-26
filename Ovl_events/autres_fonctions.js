@@ -58,8 +58,8 @@ async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {
 
         let expJid = msg.key.fromMe
           ? decodeJid(ovl.user.id)
-          : (msg.key.participantAlt || msg.key.participant)
-            ? await getJid(msg.key.participantAlt || msg.key.participant, idSalon, ovl)
+          : (msg.key.senderPn || msg.key.participantAlt || msg.key.participant)
+            ? await getJid(msg.key.senderPn || msg.key.participantAlt || msg.key.participant, idSalon, ovl)
             : idSalon;
 
         const match =
