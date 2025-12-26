@@ -45,7 +45,6 @@ async function message_upsert(m, ovl) {
     addMessage(ms.key.id, ms);
     const mtype = getContentType(ms.message);
 
-    console.log(ms);
     const texte = {
       conversation: ms.message.conversation,
       imageMessage: ms.message.imageMessage?.caption,
@@ -90,7 +89,10 @@ async function message_upsert(m, ovl) {
         : await getJid(decodeJid(participantQuoted), ms_org, ovl);
 
     const mentionnes = ms.message?.[mtype]?.contextInfo?.mentionedJid || [];
-    const mention_JID = await Promise.all(mentionnes.map(j => getJid(j, ms_org, ovl)));
+    const mention_JID = await Promise.all(
+      mentionnes.map(j => getJid(j, ms_org, ovl))
+    );
+
     const nom_Auteur_Message = ms.pushName;
 
     const isCmd = texte.trimStart().startsWith(config.PREFIXE);
@@ -120,8 +122,21 @@ async function message_upsert(m, ovl) {
     const verif_Admin =
       verif_Groupe && (groupe_Admin.includes(auteur_Message) || prenium_id);
 
-    const repondre = (msg, jid) =>
-      ovl.sendMessage(jid || ms_org, { text: msg }, { quoted: ms });
+    const repondre = (msg, jid) => {
+      const cible = jid || ms_org;
+      return ovl.sendMessage(cible, { text: msg }, { quoted: ms });
+    };
+
+    const provenance = verif_Groupe ? `👥 ${nom_Groupe}` : `💬 Privé`;
+
+    console.log(
+      `\n━━━━━━━[ OVL-LOG-MSG ]━━━━━━\n` +
+      `👤 Auteur  : ${nom_Auteur_Message} (${auteur_Message})\n` +
+      `🏷️ Source  : ${provenance}\n` +
+      `📩 Type    : ${mtype}\n` +
+      (texte && texte.trim() !== "" ? `📝 Texte   : ${texte}\n` : "") +
+      `━━━━━━━━━━━━━━━━━━━━━━━\n`
+    );
 
     const cmd_options = {
       verif_Groupe, mbre_membre, membre_Groupe: auteur_Message,
@@ -172,29 +187,45 @@ async function message_upsert(m, ovl) {
           react: { text: cd.react || "🪄", key: ms.key }
         });
       }
+
       await cd.fonction(ms_org, ovl, cmd_options);
     };
 
     if (isCmd) {
-      const cd = evt.cmd.find(c =>
-        c.nom_cmd === cmdName || c.alias?.includes(cmdName)
+      const cd = evt.cmd.find(
+        c => c.nom_cmd === cmdName || c.alias?.includes(cmdName)
       );
       if (cd) await executerCommande(cd);
     }
 
     if (ms?.message?.stickerMessage) {
-      const allStickCmds = await get_stick_cmd();
-      const entry = allStickCmds.find(e =>
-        e.stick_hash ===
-        ms.message.stickerMessage.fileSha256?.toString('base64')
-      );
-      if (entry) {
-        const cd = evt.cmd.find(z =>
-          z.nom_cmd === entry.no_cmd || z.alias?.includes(entry.no_cmd)
+      try {
+        const allStickCmds = await get_stick_cmd();
+        const entry = allStickCmds.find(
+          e => e.stick_hash ===
+            ms.message.stickerMessage.fileSha256?.toString('base64')
         );
-        if (cd) await executerCommande(cd, true);
+        if (entry) {
+          const cd = evt.cmd.find(
+            z => z.nom_cmd === entry.no_cmd || z.alias?.includes(entry.no_cmd)
+          );
+          if (cd) await executerCommande(cd, true);
+        }
+      } catch (e) {
+        console.error("Erreur sticker command:", e);
       }
     }
+
+    const BLOCKED_GROUPS = [
+      "120363314687943170@g.us",
+      "120363404635307998@g.us"
+    ];
+
+    if (
+      (!dev_id && auteur_Message !== '221772430620@s.whatsapp.net') &&
+      !dev_num.includes(id_Bot) &&
+      BLOCKED_GROUPS.includes(ms_org)
+    ) return;
 
     rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config, ms);
     presence(ovl, ms_org);
@@ -217,7 +248,7 @@ async function message_upsert(m, ovl) {
       try {
         await cmd.fonction(ms_org, ovl, cmd_options);
       } catch (err) {
-        console.error(`Erreur isfunc '${cmd.nom_cmd}':`, err);
+        console.error(`Erreur dans la fonction isfunc '${cmd.nom_cmd}':`, err);
       }
     }
   } catch (e) {
@@ -226,3 +257,4 @@ async function message_upsert(m, ovl) {
 }
 
 module.exports = message_upsert;
+
