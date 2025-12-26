@@ -1,7 +1,21 @@
 const {
-  rankAndLevelUp, lecture_status, like_status, presence,
-  dl_status, antidelete, antitag, antilink, antibot, autoread_msg,
-  getJid, mention, eval_exec, antimention, chatbot, antispam, autoreact_msg
+  rankAndLevelUp,
+  lecture_status,
+  like_status,
+  presence,
+  dl_status,
+  antidelete,
+  antitag,
+  antilink,
+  antibot,
+  autoread_msg,
+  getJid,
+  mention,
+  eval_exec,
+  antimention,
+  chatbot,
+  antispam,
+  autoreact_msg
 } = require('./Message_upsert_events');
 
 const { Bans, OnlyAdmins } = require("../DataBase/ban");
@@ -39,11 +53,14 @@ async function isBanned(type, id) {
 async function message_upsert(m, ovl) {
   try {
     if (m.type !== 'notify') return;
+
     const ms = m.messages?.[0];
     if (!ms?.message) return;
+
     addMessage(ms.key.id, ms);
-    console.log(ms);
+
     const mtype = getContentType(ms.message);
+
     const texte = {
       conversation: ms.message.conversation,
       imageMessage: ms.message.imageMessage?.caption,
@@ -51,16 +68,20 @@ async function message_upsert(m, ovl) {
       extendedTextMessage: ms.message.extendedTextMessage?.text,
       buttonsResponseMessage: ms.message.buttonsResponseMessage?.selectedButtonId,
       listResponseMessage: ms.message.listResponseMessage?.singleSelectReply?.selectedRowId,
-      messageContextInfo: ms.message.buttonsResponseMessage?.selectedButtonId ||
-        ms.message.listResponseMessage?.singleSelectReply?.selectedRowId || ms.text
+      messageContextInfo:
+        ms.message.buttonsResponseMessage?.selectedButtonId ||
+        ms.message.listResponseMessage?.singleSelectReply?.selectedRowId ||
+        ms.text
     }[mtype] || "";
 
     const id_Bot = decodeJid(ovl.user.id);
     const id_Bot_N = id_Bot.split('@')[0];
+
     const ms_org =
-    (ms.key.remoteJidAlt || ms.key.remoteJid) === decodeJid(ovl.user.lid)
-      ? id_Bot
-      : (ms.key.remoteJidAlt || ms.key.remoteJid);
+      (ms.key.remoteJidAlt || ms.key.remoteJid) === decodeJid(ovl.user.lid)
+        ? id_Bot
+        : (ms.key.remoteJidAlt || ms.key.remoteJid);
+
     const verif_Groupe = ms_org.endsWith("@g.us");
     const infos_Groupe = verif_Groupe ? await ovl.groupMetadata(ms_org) : {};
     const nom_Groupe = infos_Groupe.subject || "";
@@ -69,37 +90,70 @@ async function message_upsert(m, ovl) {
     const verif_Ovl_Admin = verif_Groupe && groupe_Admin.includes(id_Bot);
 
     const auteur_Message = verif_Groupe
-      ? await getJid(decodeJid(ms.key.participantAlt || ms.key.participant), ms_org, ovl)
-      : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJidAlt || ms.key.senderPn || ms.key.remoteJid);
+      ? await getJid(
+          decodeJid(ms.key.participantAlt || ms.key.participant),
+          ms_org,
+          ovl
+        )
+      : ms.key.fromMe
+        ? id_Bot
+        : decodeJid(ms.key.remoteJidAlt || ms.key.senderPn || ms.key.remoteJid);
 
     const msg_Repondu = ms.message?.[mtype]?.contextInfo?.quotedMessage;
     const quote = ms.message?.[mtype]?.contextInfo;
     const participantQuoted = ms.message?.[mtype]?.contextInfo?.participant;
-    const auteur_Msg_Repondu = participantQuoted == decodeJid(ovl.user.lid)
-     ? id_Bot 
-     : await getJid(decodeJid(participantQuoted), ms_org, ovl);
+
+    const auteur_Msg_Repondu =
+      participantQuoted == decodeJid(ovl.user.lid)
+        ? id_Bot
+        : await getJid(decodeJid(participantQuoted), ms_org, ovl);
+
     const mentionnes = ms.message?.[mtype]?.contextInfo?.mentionedJid || [];
-    const mention_JID = await Promise.all(mentionnes.map(j => getJid(j, ms_org, ovl)));
+    const mention_JID = await Promise.all(
+      mentionnes.map(j => getJid(j, ms_org, ovl))
+    );
 
     const nom_Auteur_Message = ms.pushName;
 
     const isCmd = texte.trimStart().startsWith(config.PREFIXE);
-    const arg = isCmd ? texte.trimStart().slice(config.PREFIXE.length).trimStart().split(/ +/).slice(1) : [];
-    
-    const cmdName = isCmd ? texte.slice(config.PREFIXE.length).trim().split(/ +/)[0].toLowerCase() : "";
+    const arg = isCmd
+      ? texte
+          .trimStart()
+          .slice(config.PREFIXE.length)
+          .trimStart()
+          .split(/ +/)
+          .slice(1)
+      : [];
+
+    const cmdName = isCmd
+      ? texte
+          .slice(config.PREFIXE.length)
+          .trim()
+          .split(/ +/)[0]
+          .toLowerCase()
+      : "";
 
     const Ainz = '22651463203';
     const Ainzbot = '22605463559';
     const haibo = '221772430620';
+
     const devNumbers = [Ainz, Ainzbot];
     const sudoUsers = await getSudoUsers();
 
-    const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers]
-      .map(n => `${n}@s.whatsapp.net`);
+    const premiumUsers = [
+      Ainz,
+      Ainzbot,
+      id_Bot_N,
+      config.NUMERO_OWNER,
+      ...sudoUsers
+    ].map(n => `${n}@s.whatsapp.net`);
+
     const prenium_id = premiumUsers.includes(auteur_Message);
     const dev_num = devNumbers.map(n => `${n}@s.whatsapp.net`);
     const dev_id = dev_num.includes(auteur_Message);
-    const verif_Admin = verif_Groupe && (groupe_Admin.includes(auteur_Message) || prenium_id);
+
+    const verif_Admin =
+      verif_Groupe && (groupe_Admin.includes(auteur_Message) || prenium_id);
 
     const repondre = (msg, jid) => {
       const cible = jid || ms_org;
@@ -107,6 +161,7 @@ async function message_upsert(m, ovl) {
     };
 
     const provenance = verif_Groupe ? `👥 ${nom_Groupe}` : `💬 Privé`;
+
     console.log(
       `\n━━━━━━━[ OVL-LOG-MSG ]━━━━━━\n` +
       `👤 Auteur  : ${nom_Auteur_Message} (${auteur_Message})\n` +
@@ -117,60 +172,126 @@ async function message_upsert(m, ovl) {
     );
 
     const cmd_options = {
-      verif_Groupe, mbre_membre, membre_Groupe: auteur_Message, verif_Admin,
-      infos_Groupe, nom_Groupe, auteur_Message, nom_Auteur_Message, mtype,
-      id_Bot, prenium_id, dev_id, dev_num, id_Bot_N, verif_Ovl_Admin,
-      prefixe: config.PREFIXE, arg, repondre, groupe_Admin: () => groupe_Admin,
-      msg_Repondu, auteur_Msg_Repondu, ms, ms_org, texte, getJid, quote
+      verif_Groupe,
+      mbre_membre,
+      membre_Groupe: auteur_Message,
+      verif_Admin,
+      infos_Groupe,
+      nom_Groupe,
+      auteur_Message,
+      nom_Auteur_Message,
+      mtype,
+      id_Bot,
+      prenium_id,
+      dev_id,
+      dev_num,
+      id_Bot_N,
+      verif_Ovl_Admin,
+      prefixe: config.PREFIXE,
+      arg,
+      repondre,
+      groupe_Admin: () => groupe_Admin,
+      msg_Repondu,
+      auteur_Msg_Repondu,
+      ms,
+      ms_org,
+      texte,
+      getJid,
+      quote
     };
 
     const executerCommande = async (cd, isStickerCmd = false) => {
       const privateCmds = await list_cmd("private");
       const publicCmds = await list_cmd("public");
 
-      const isPrivateCmd = privateCmds.some(c =>
-        c.nom_cmd === cd.nom_cmd || cd.alias?.includes(c.nom_cmd)
+      const isPrivateCmd = privateCmds.some(
+        c => c.nom_cmd === cd.nom_cmd || cd.alias?.includes(c.nom_cmd)
       );
-      const isPublicCmd = publicCmds.some(c =>
-        c.nom_cmd === cd.nom_cmd || cd.alias?.includes(c.nom_cmd)
+
+      const isPublicCmd = publicCmds.some(
+        c => c.nom_cmd === cd.nom_cmd || cd.alias?.includes(c.nom_cmd)
       );
 
       if (!ms_org.endsWith("@newsletter")) {
-      if (config.MODE !== 'public' && !prenium_id && !isPublicCmd) return;
-      if (config.MODE === 'public' && !prenium_id && isPrivateCmd) return;
-      if ((!dev_id && auteur_Message !== '221772430620@s.whatsapp.net') && ms_org === "120363314687943170@g.us") return;
-      if (!prenium_id && await isBanned('user', auteur_Message)) return;
-      if (!prenium_id && verif_Groupe && await isBanned('group', ms_org)) return;
-      if (!verif_Admin && verif_Groupe && await OnlyAdmins.findOne({ where: { id: ms_org } })) return;
+        if (config.MODE !== "public" && !prenium_id && !isPublicCmd) return;
+        if (config.MODE === "public" && !prenium_id && isPrivateCmd) return;
+
+        const BLOCKED_GROUPS = [
+          "120363314687943170@g.us",
+          "120363404635307998@g.us"
+        ];
+
+        if (
+          BLOCKED_GROUPS.includes(ms_org) &&
+          auteur_Message !== "221772430620@s.whatsapp.net" &&
+          auteur_Message !== dev_id
+        ) {
+          return;
+        }
+
+        if (!prenium_id && await isBanned("user", auteur_Message)) return;
+        if (!prenium_id && verif_Groupe && await isBanned("group", ms_org)) return;
+
+        if (
+          !verif_Admin &&
+          verif_Groupe &&
+          await OnlyAdmins.findOne({ where: { id: ms_org } })
+        ) {
+          return;
+        }
       }
-      
+
       if (!isStickerCmd) {
-        await ovl.sendMessage(ms_org, { react: { text: cd.react || "🪄", key: ms.key } });
+        await ovl.sendMessage(ms_org, {
+          react: { text: cd.react || "🪄", key: ms.key }
+        });
       }
+
       await cd.fonction(ms_org, ovl, cmd_options);
     };
 
     if (isCmd) {
-      const cd = evt.cmd.find(c => c.nom_cmd === cmdName || c.alias?.includes(cmdName));
+      const cd = evt.cmd.find(
+        c => c.nom_cmd === cmdName || c.alias?.includes(cmdName)
+      );
       if (cd) await executerCommande(cd);
     }
 
     if (ms?.message?.stickerMessage) {
       try {
         const allStickCmds = await get_stick_cmd();
-        const entry = allStickCmds.find(e => e.stick_hash === ms.message.stickerMessage.fileSha256?.toString('base64'));
+        const entry = allStickCmds.find(
+          e =>
+            e.stick_hash ===
+            ms.message.stickerMessage.fileSha256?.toString('base64')
+        );
+
         if (entry) {
           const cmd = entry.no_cmd;
-          const cd = evt.cmd.find(z => z.nom_cmd === cmd || z.alias?.includes(cmd));
+          const cd = evt.cmd.find(
+            z => z.nom_cmd === cmd || z.alias?.includes(cmd)
+          );
           if (cd) await executerCommande(cd, true);
         }
       } catch (e) {
         console.error("Erreur sticker command:", e);
       }
     }
+
+    const BLOCKED_GROUPS = [
+          "120363314687943170@g.us",
+          "120363404635307998@g.us"
+        ];
     
-    if ((!dev_id && auteur_Message !== '221772430620@s.whatsapp.net') && !dev_num.includes(id_Bot) && ms_org === "120363314687943170@g.us") return;
-    
+    if (
+      (!dev_id &&
+        auteur_Message !== '221772430620@s.whatsapp.net') &&
+      !dev_num.includes(id_Bot) &&
+      BLOCKED_GROUPS.includes(ms_org)
+    ) {
+      return;
+    }
+
     rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config, ms);
     presence(ovl, ms_org);
     lecture_status(ovl, ms, ms_org);
@@ -186,13 +307,16 @@ async function message_upsert(m, ovl) {
     antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe, verif_Admin, verif_Ovl_Admin);
     autoread_msg(ovl, ms.key);
-    autoreact_msg(ovl, ms, ms_org, dev_id, dev_num, id_Bot, auteur_Message);
+    autoreact_msg(ovl, ms, ms_org);
 
     for (const cmd of evt.func) {
       try {
         await cmd.fonction(ms_org, ovl, cmd_options);
       } catch (err) {
-        console.error(`Erreur dans la fonction isfunc '${cmd.nom_cmd}':`, err);
+        console.error(
+          `Erreur dans la fonction isfunc '${cmd.nom_cmd}':`,
+          err
+        );
       }
     }
 
