@@ -55,7 +55,10 @@ async function message_upsert(m, ovl) {
         ms.message.listResponseMessage?.singleSelectReply?.selectedRowId || ms.text
     }[mtype] || "";
 
-    const ms_org = ms.key.remoteJidAlt || ms.key.remoteJid;
+    const ms_org =
+    (ms.key.remoteJidAlt || ms.key.remoteJid) === decodeJid(ovl.user.lid)
+      ? id_Bot
+      : (ms.key.remoteJidAlt || ms.key.remoteJid);
     const id_Bot = decodeJid(ovl.user.id);
     const id_Bot_N = id_Bot.split('@')[0];
     const verif_Groupe = ms_org.endsWith("@g.us");
