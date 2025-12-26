@@ -102,6 +102,7 @@ async function group_participants_update(data, ovl) {
     const demoteAlert = eventSettings?.demoteAlert || 'non';
 
     for (const participant of data.participants) {
+      console.log(participant);
       const actor = data.author;
       const actorMention = actor ? `@${actor.split("@")[0]}` : "quelqu’un";
       const userMention = `@${participant.jid.split("@")[0]}`;
