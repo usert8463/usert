@@ -44,7 +44,7 @@ async function message_upsert(m, ovl) {
 
     addMessage(ms.key.id, ms);
     const mtype = getContentType(ms.message);
-console.log(ms);
+
     const texte = {
       conversation: ms.message.conversation,
       imageMessage: ms.message.imageMessage?.caption,
@@ -77,8 +77,7 @@ console.log(ms);
       ? await getJid(decodeJid(ms.key.participantAlt || ms.key.participant), ms_org, ovl)
       : ms.key.fromMe
         ? id_Bot
-        : decodeJid(ms.key.remoteJidAlt || ms.key.senderPn || ms.key.remoteJid);
-    console.log(auteur_Message);
+        : decodeJid(ms.key.participantPn || ms.key.participant || ms.key.remoteJidAlt || ms.key.senderPn || ms.key.remoteJid);
 
     const msg_Repondu = ms.message?.[mtype]?.contextInfo?.quotedMessage;
     const quote = ms.message?.[mtype]?.contextInfo;
