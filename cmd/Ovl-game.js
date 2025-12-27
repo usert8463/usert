@@ -520,14 +520,12 @@ ovlcmd(
             return;
           }
 
-          const tempsReponse = ((Date.now() - debutReponse) / 1000).toFixed(1);
-
           if (normaliserTexte(txt) === normaliserTexte(mot)) {
             joueur.score++;
             correct = true;
             reussitesCeTour++;
             await ovl.sendMessage(ms_org, {
-              text: `✅ Excellent @${joueur.id.split("@")[0]} ! Le mot était *${mot}* (${tempsReponse}s)`,
+              text: `✅ Excellent @${joueur.id.split("@")[0]} ! Le mot était *${mot}*`,
               mentions: [joueur.id],
             });
           } else {
