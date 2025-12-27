@@ -130,7 +130,7 @@ async function stopSession(numero) {
   const ovl = instancesSessions.get(numero)
 
   try {
-    await ovl.ws.close()
+    await ovl.end()
     const dirPath = path.join(__dirname, './auth', numero)
 
     if (fs.existsSync(dirPath)) {
