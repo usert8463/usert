@@ -613,15 +613,6 @@ ovlcmd(
     const debutInscription = Date.now();
     const motsUtilises = new Set();
 
-    function normaliserTexte(texte) {
-      return texte
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z]/g, "")
-        .trim();
-    }
-
     async function verifierMotExiste(mot) {
   try {
     const motNormalise = mot;
