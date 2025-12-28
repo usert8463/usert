@@ -1,9 +1,17 @@
 const axios = require('axios');
 const { ChatbotConf } = require('../../DataBase/chatbot');
+const config = require('./../set');
 
-const GPT_API_URL = "https://api-ovl.koyeb.app/chatbot";
-
-async function chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot, auteur_Msg_Repondu, auteur_Message) {
+async function chatbot(
+  ms_org,
+  verif_Groupe,
+  texte,
+  repondre,
+  mention_JID,
+  id_Bot,
+  auteur_Msg_Repondu,
+  auteur_Message
+) {
   try {
     if (verif_Groupe) {
       if (!mention_JID.includes(id_Bot) && auteur_Msg_Repondu !== id_Bot) return;
@@ -13,34 +21,58 @@ async function chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bo
 
     if (!texte) return;
 
-    const config = await ChatbotConf.findByPk('1');
-    if (!config) return;
+    const conf = await ChatbotConf.findByPk('1');
+    if (!conf) return;
 
     let enabledIds = [];
     try {
-      enabledIds = JSON.parse(config.enabled_ids || '[]');
+      enabledIds = JSON.parse(conf.enabled_ids || '[]');
     } catch {
       enabledIds = [];
     }
 
     const localActif = enabledIds.includes(ms_org);
     const globalActif = verif_Groupe
-      ? config.chatbot_gc === 'oui'
-      : config.chatbot_pm === 'oui';
+      ? conf.chatbot_gc === 'oui'
+      : conf.chatbot_pm === 'oui';
 
     if (!(localActif || globalActif)) return;
 
-    const response = await axios.get(`${GPT_API_URL}?texte=${encodeURIComponent(texte)}`);
-    const finalResponse = response.data?.response;
-    
-    if (finalResponse) {
-      return repondre(finalResponse);
+    const prompt = `Tu es un assistant intelligent appelé OVL.
+Ton créateur se nomme Ainz.
+Répond clairement, précisément et chaleureusement.
+Répond toujours dans la langue du message.
+Message :
+"${texte}"`;
+
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${config.GEMINI_API_KEY}`,
+      {
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      },
+      {
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+
+    const data = response.data;
+
+    if (data?.candidates?.length > 0) {
+      const reponseTexte =
+        data.candidates[0]?.content?.parts?.[0]?.text || "";
+
+      if (reponseTexte) {
+        return repondre(reponseTexte);
+      }
     }
 
   } catch (err) {
-    console.error("Erreur chatbot API OVL :", err.message);
+    console.error("Erreur chatbot Gemini :", err.message);
   }
 }
 
 module.exports = chatbot;
-
