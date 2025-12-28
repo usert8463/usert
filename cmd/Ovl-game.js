@@ -624,12 +624,15 @@ ovlcmd(
 
     async function verifierMotExiste(mot) {
   try {
-    const motNormalise = normaliserTexte(mot);
-    const url = `https://api.dictionaryapi.dev/api/v2/entries/fr/${motNormalise}`;
+    const motNormalise = mot;
+    const url = `https://fr.wiktionary.org/wiki/${encodeURIComponent(motNormalise)}`;
+
     const response = await fetch(url);
-    const data = await response.json();
-console.log(data)
-    if (data?.title === "No Definitions Found") {
+    if (!response.ok) return false;
+
+    const html = await response.text();
+
+    if (html.includes("Pas de résultat pour")) {
       return false;
     }
 
@@ -637,7 +640,7 @@ console.log(data)
   } catch {
     return false;
   }
-    }
+}
 
     joueurs.set(auteur_Message, { id: auteur_Message, score: 0 });
     const createur = auteur_Message || prenium_id;
