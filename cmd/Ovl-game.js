@@ -623,15 +623,20 @@ ovlcmd(
     }
 
     async function verifierMotExiste(mot) {
-      try {
-        const motNormalise = normaliserTexte(mot);
-        const url = `https://fr.wiktionary.org/wiki/${motNormalise}`;
-        const response = await fetch(url);
-        const html = await response.text();
-        return html.includes('id="Français"') || html.includes('class="mw-headline"');
-      } catch {
-        return false;
-      }
+  try {
+    const motNormalise = normaliserTexte(mot);
+    const url = `https://api.dictionaryapi.dev/api/v2/entries/fr/${motNormalise}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data?.title === "No Definitions Found") {
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
     }
 
     joueurs.set(auteur_Message, { id: auteur_Message, score: 0 });
