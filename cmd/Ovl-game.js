@@ -866,7 +866,8 @@ ovlcmd(
               });
             }
           }
-        } catch (error) {
+        } catch (err) {
+          console.error(err);
           await ovl.sendMessage(ms_org, {
             text:
               `⏰ Temps écoulé : @${joueur.id.split("@")[0]}\n` +
