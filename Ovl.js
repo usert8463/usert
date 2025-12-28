@@ -298,8 +298,3 @@ process.on('uncaughtException', e => {
 process.on('unhandledRejection', reason => {
   console.error('Rejection non gérée :', reason)
 })
-
-process.on("SIGTERM", () => {
-  console.log("🛑 SIGTERM reçu, fermeture propre...");
-  process.exit(0);
-});
