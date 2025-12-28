@@ -640,7 +640,7 @@ ovlcmd(
     await ovl.sendMessage(ms_org, {
       text:
         "╔════════════════╗\n" +
-        "     🎮 WORD CHAIN GAME\n" +
+        "   🎮 WORD CHAIN GAME\n" +
         "╚════════════════╝\n\n" +
         "📝 Trouvez des mots valides\n" +
         "🎯 Dernier survivant gagne\n" +
@@ -819,11 +819,11 @@ ovlcmd(
 
           const motPropose = normaliserTexte(txt);
 
-          if (motPropose.length > longueurDemandee) {
+          if (motPropose.length < longueurDemandee) {
             await ovl.sendMessage(ms_org, {
               text:
                 `❌ Éliminé : @${joueur.id.split("@")[0]}\n` +
-                `Raison : Longueur incorrecte (${motPropose.length} > ${longueurDemandee})`,
+                `Raison : Longueur incorrecte (${motPropose.length} < ${longueurDemandee})`,
               mentions: [joueur.id],
             });
           } else if (motsUtilises.has(motPropose)) {
