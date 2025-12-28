@@ -819,11 +819,11 @@ ovlcmd(
 
           const motPropose = normaliserTexte(txt);
 
-          if (motPropose.length !== longueurDemandee) {
+          if (motPropose.length > longueurDemandee) {
             await ovl.sendMessage(ms_org, {
               text:
                 `❌ Éliminé : @${joueur.id.split("@")[0]}\n` +
-                `Raison : Longueur incorrecte (${motPropose.length} ≠ ${longueurDemandee})`,
+                `Raison : Longueur incorrecte (${motPropose.length} > ${longueurDemandee})`,
               mentions: [joueur.id],
             });
           } else if (motsUtilises.has(motPropose)) {
@@ -959,6 +959,15 @@ ovlcmd(
   }
 );
 
+        if (secondesRestantes === t / 1000 && !rappelEnvoyes.has(t)) {
+          rappelEnvoyes.add(t);
+          await ovl.sendMessage(ms_org, {
+            text: `⏳ Temps restant : ${t / 1000}s ! Tapez *join* ou *start*.`,
+          });
+        }
+      }
+    }, 1000);
+
 ovlcmd(
   {
     nom_cmd: "pendu",
@@ -1050,7 +1059,7 @@ __|__ 💀`
       return etapes[erreurs] || etapes[0];
     };
 
-    joueurs.set(auteur_Message, { id: auteur_Message, score: 0 });
+    joueurs.set(auteur_Message, { id: auteur_Message, score: 0, elimine: false });
     const createur = auteur_Message || prenium_id;
 
     await ovl.sendMessage(ms_org, {
@@ -1077,7 +1086,7 @@ __|__ 💀`
         if (secondesRestantes === t / 1000 && !rappelEnvoyes.has(t)) {
           rappelEnvoyes.add(t);
           await ovl.sendMessage(ms_org, {
-            text: `⏳ Temps restant : ${t / 1000}s ! Tapez *join* ou *start*.`,
+            text: `⏰ Plus que ${t / 1000}s pour rejoindre !`,
           });
         }
       }
@@ -1091,7 +1100,7 @@ __|__ 💀`
         const auteur = await getJid(auteurLid, ms_org, ovl);
         
         if (msg === "join" && auteur && !joueurs.has(auteur)) {
-          joueurs.set(auteur, { id: auteur, score: 0 });
+          joueurs.set(auteur, { id: auteur, score: 0, elimine: false });
           await ovl.sendMessage(ms_org, {
             text: `✅ @${auteur.split("@")[0]} a rejoint ! (${joueurs.size} joueur${joueurs.size > 1 ? 's' : ''})`,
             mentions: [auteur],
@@ -1136,14 +1145,16 @@ __|__ 💀`
         `👥 Joueurs (${joueurs.size}) : ${[...joueurs.values()].map(j => `@${j.id.split("@")[0]}`).join(", ")}\n` +
         `📝 Proposez des lettres à tour de rôle\n` +
         `⏱️ 15 secondes par lettre\n` +
+        `🎯 Dernier survivant gagne !\n` +
         `Bonne chance ! 🍀`,
       mentions: [...joueurs.keys()],
     });
 
     let manche = 1;
     const motsUtilises = new Set();
+    let joueursActifs = [...joueurs.values()];
 
-    while (manche <= 5 && !partieAnnulee) {
+    while (joueursActifs.length > 1 && !partieAnnulee) {
       const motsDisponibles = mots.filter(m => !motsUtilises.has(normaliserTexte(m)));
       if (motsDisponibles.length === 0) break;
 
@@ -1170,21 +1181,26 @@ __|__ 💀`
       await ovl.sendMessage(ms_org, {
         text:
           `\n━━━━━━━━━━━━━━━━━━\n` +
-          `🎯 *MANCHE ${manche}/5*\n` +
+          `🎯 *MANCHE ${manche}*\n` +
           `━━━━━━━━━━━━━━━━━━\n\n` +
-          `💡 Catégorie : Mot français\n` +
+          `👥 ${joueursActifs.length} survivant${joueursActifs.length > 1 ? 's' : ''}\n` +
           `📏 Longueur : ${motSecret.length} lettres\n` +
-          `❤️ Vies restantes : ${maxErreurs}\n\n` +
+          `❤️ Vies : ${maxErreurs}\n\n` +
           `Mot : ${afficherMot()}\n\n` +
           `🎮 Proposez une lettre !`,
       });
 
-      let joueursActifs = [...joueurs.values()];
       let indexJoueur = 0;
       let motTrouve = false;
+      const joueursEliminairesCeMot = new Set();
 
       while (erreurs < maxErreurs && !motComplet() && !partieAnnulee) {
         const joueur = joueursActifs[indexJoueur % joueursActifs.length];
+
+        if (joueursEliminairesCeMot.has(joueur.id)) {
+          indexJoueur++;
+          continue;
+        }
 
         await ovl.sendMessage(ms_org, {
           text:
@@ -1243,9 +1259,9 @@ __|__ 💀`
 
           if (motNormalise.includes(lettre)) {
             lettresTrouvees.add(lettre);
-            joueur.score += 2;
+            joueur.score++;
             await ovl.sendMessage(ms_org, {
-              text: `✅ Bien joué @${joueur.id.split("@")[0]} ! "${lettre.toUpperCase()}" est dans le mot ! (+2 pts)`,
+              text: `✅ Bien joué @${joueur.id.split("@")[0]} ! "${lettre.toUpperCase()}" est dans le mot ! (+1 pt)`,
               mentions: [joueur.id],
             });
           } else {
@@ -1258,12 +1274,12 @@ __|__ 💀`
 
           if (motComplet()) {
             motTrouve = true;
-            joueur.score += 5;
+            joueur.score += 3;
             await ovl.sendMessage(ms_org, {
               text:
                 `\n🎉 *MOT TROUVÉ !* 🎉\n\n` +
                 `Mot : *${motSecret.toUpperCase()}*\n\n` +
-                `👑 @${joueur.id.split("@")[0]} a trouvé la dernière lettre ! (+5 pts bonus)\n` +
+                `👑 @${joueur.id.split("@")[0]} a trouvé la dernière lettre ! (+3 pts bonus)\n` +
                 `✅ Erreurs : ${erreurs}/${maxErreurs}`,
               mentions: [joueur.id],
             });
@@ -1272,8 +1288,10 @@ __|__ 💀`
 
           indexJoueur++;
         } catch {
+          joueursEliminairesCeMot.add(joueur.id);
+          joueur.elimine = true;
           await ovl.sendMessage(ms_org, {
-            text: `⏰ Temps écoulé pour @${joueur.id.split("@")[0]} ! Tour suivant...`,
+            text: `⏰ Temps écoulé ! @${joueur.id.split("@")[0]} est éliminé !`,
             mentions: [joueur.id],
           });
           indexJoueur++;
@@ -1290,36 +1308,42 @@ __|__ 💀`
             `\n${dessinerPendu(maxErreurs)}\n\n` +
             `💀 *PENDU !*\n\n` +
             `Le mot était : *${motSecret.toUpperCase()}*\n` +
-            `Dommage, personne n'a trouvé...`,
+            `Tous les survivants continuent...`,
         });
       }
 
-      if (manche < 5) {
-        manche++;
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        await ovl.sendMessage(ms_org, {
-          text:
-            `\n━━━━━━━━━━━━━━━━━━\n` +
-            `📊 *Scores actuels :*\n` +
-            `${[...joueurs.values()].sort((a, b) => b.score - a.score).map(j => `• @${j.id.split("@")[0]} : ${j.score} pts`).join('\n')}\n` +
-            `━━━━━━━━━━━━━━━━━━\n\n` +
-            `⏭️ Manche suivante dans 3 secondes...`,
-          mentions: [...joueurs.keys()],
-        });
-        
-        await new Promise(resolve => setTimeout(resolve, 3000));
-      } else {
-        break;
-      }
+      joueursActifs = joueursActifs.filter(j => !j.elimine);
+
+      if (joueursActifs.length <= 1) break;
+
+      manche++;
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      await ovl.sendMessage(ms_org, {
+        text:
+          `\n━━━━━━━━━━━━━━━━━━\n` +
+          `📊 Fin de la manche ${manche - 1}\n` +
+          `━━━━━━━━━━━━━━━━━━\n\n` +
+          `✅ Survivants : ${joueursActifs.map(j => `@${j.id.split("@")[0]}`).join(', ')}\n\n` +
+          `⏭️ Manche ${manche} dans 3s...`,
+        mentions: joueursActifs.map(j => j.id),
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
 
     let final = `\n━━━━━━━━━━━━━━━━━━━━━━\n🏆 *FIN DE LA PARTIE* 🏆\n━━━━━━━━━━━━━━━━━━━━━━\n\n`;
     
     const scoresTries = [...joueurs.values()].sort((a, b) => b.score - a.score);
     
-    if (scoresTries.length > 0) {
-      final += `👑 *VAINQUEUR* : @${scoresTries[0].id.split("@")[0]} avec ${scoresTries[0].score} points !\n\n`;
+    if (joueursActifs.length === 1) {
+      final += `👑 *VAINQUEUR* : @${joueursActifs[0].id.split("@")[0]} avec ${joueursActifs[0].score} points !\n`;
+      final += `📈 Manches jouées : ${manche}\n\n`;
+    } else if (joueursActifs.length > 1) {
+      final += `🏆 *SURVIVANTS* : ${joueursActifs.map(j => `@${j.id.split("@")[0]}`).join(', ')}\n`;
+      final += `📈 Manches jouées : ${manche}\n\n`;
+    } else {
+      final += `💀 Aucun survivant !\n📈 Manches jouées : ${manche}\n\n`;
     }
 
     final += `📊 *Classement Final :*\n`;
@@ -1336,5 +1360,4 @@ __|__ 💀`
     });
   }
 );
-
 
