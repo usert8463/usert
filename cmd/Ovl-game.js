@@ -959,15 +959,6 @@ ovlcmd(
   }
 );
 
-        if (secondesRestantes === t / 1000 && !rappelEnvoyes.has(t)) {
-          rappelEnvoyes.add(t);
-          await ovl.sendMessage(ms_org, {
-            text: `⏳ Temps restant : ${t / 1000}s ! Tapez *join* ou *start*.`,
-          });
-        }
-      }
-    }, 1000);
-
 ovlcmd(
   {
     nom_cmd: "pendu",
