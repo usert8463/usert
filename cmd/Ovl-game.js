@@ -639,7 +639,7 @@ ovlcmd(
     await ovl.sendMessage(ms_org, {
       text:
         "╔════════════════╗\n" +
-        "   🎮 WORD CHAIN GAME\n" +
+        "  🎮 WORD CHAIN GAME\n" +
         "╚════════════════╝\n\n" +
         "📝 Trouvez des mots valides\n" +
         "🎯 Dernier survivant gagne\n" +
@@ -958,7 +958,7 @@ ovlcmd(
   }
 );
 
-ovlcmd(
+/*ovlcmd(
   {
     nom_cmd: "pendu",
     classe: "OVL-GAMES",
@@ -1350,4 +1350,4 @@ __|__ 💀`
     });
   }
 );
-
+*/
