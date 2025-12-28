@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { ChatbotConf } = require('../../DataBase/chatbot');
-const config = require('./../set');
+const config = require('../../set');
 
 async function chatbot(
   ms_org,
