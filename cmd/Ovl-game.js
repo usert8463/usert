@@ -601,3 +601,740 @@ ovlcmd(
   }
 );
 
+ovlcmd(
+  {
+    nom_cmd: "wcg",
+    classe: "OVL-GAMES",
+    react: "🎯",
+    desc: "Word Chain Game - Survivez en trouvant des mots !",
+  },
+  async (ms_org, ovl, { repondre, auteur_Message, prenium_id, getJid }) => {
+    const joueurs = new Map();
+    const debutInscription = Date.now();
+    const motsUtilises = new Set();
+
+    function normaliserTexte(texte) {
+      return texte
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z]/g, "")
+        .trim();
+    }
+
+    async function verifierMotExiste(mot) {
+      try {
+        const motNormalise = normaliserTexte(mot);
+        const url = `https://fr.wiktionary.org/wiki/${motNormalise}`;
+        const response = await fetch(url);
+        const html = await response.text();
+        return html.includes('id="Français"') || html.includes('class="mw-headline"');
+      } catch {
+        return false;
+      }
+    }
+
+    joueurs.set(auteur_Message, { id: auteur_Message, score: 0 });
+    const createur = auteur_Message || prenium_id;
+
+    await ovl.sendMessage(ms_org, {
+      text:
+        "╔════════════════╗\n" +
+        "     🎮 WORD CHAIN GAME\n" +
+        "╚════════════════╝\n\n" +
+        "📝 Trouvez des mots valides\n" +
+        "🎯 Dernier survivant gagne\n" +
+        "💬 'join' pour rejoindre\n" +
+        "🚀 'start' pour lancer\n" +
+        "🛑 'stop' pour annuler\n\n" +
+        "⏳ Inscription : 60s",
+    });
+
+    const rappelTemps = [45000, 30000, 15000];
+    const rappelEnvoyes = new Set();
+    let partieCommencee = false;
+    let partieAnnulee = false;
+
+    const timerInterval = setInterval(async () => {
+      const restant = 60000 - (Date.now() - debutInscription);
+      if (restant <= 0 || partieCommencee || partieAnnulee) return clearInterval(timerInterval);
+      const secondesRestantes = Math.floor(restant / 1000);
+      for (let t of rappelTemps) {
+        if (secondesRestantes === t / 1000 && !rappelEnvoyes.has(t)) {
+          rappelEnvoyes.add(t);
+          await ovl.sendMessage(ms_org, {
+            text: `⏰ Plus que ${t / 1000}s pour rejoindre !`,
+          });
+        }
+      }
+    }, 1000);
+
+    while (Date.now() - debutInscription < 60000 && !partieCommencee && !partieAnnulee) {
+      try {
+        const rep = await ovl.recup_msg({ ms_org, temps: 60000 - (Date.now() - debutInscription) });
+        const msg = (rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "").trim().toLowerCase();
+        const auteurLid = rep?.key?.participant || rep?.key?.remoteJid || rep?.message?.senderKey;
+        const auteur = await getJid(auteurLid, ms_org, ovl);
+        
+        if (msg === "join" && auteur && !joueurs.has(auteur)) {
+          joueurs.set(auteur, { id: auteur, score: 0 });
+          await ovl.sendMessage(ms_org, {
+            text: `✅ @${auteur.split("@")[0]} a rejoint la partie !\n👥 Total : ${joueurs.size} joueur${joueurs.size > 1 ? 's' : ''}`,
+            mentions: [auteur],
+          });
+        } else if (msg === "start" && auteur === createur) {
+          if (joueurs.size < 2) {
+            await ovl.sendMessage(ms_org, {
+              text: `❌ Minimum 2 joueurs requis\n📊 Actuellement : ${joueurs.size}`,
+            });
+          } else {
+            partieCommencee = true;
+            clearInterval(timerInterval);
+            break;
+          }
+        } else if (msg === "stop" && auteur === createur) {
+          partieAnnulee = true;
+          clearInterval(timerInterval);
+          await ovl.sendMessage(ms_org, {
+            text: `🛑 Partie annulée par @${auteur.split("@")[0]}`,
+            mentions: [auteur],
+          });
+          return;
+        }
+      } catch {}
+    }
+
+    if (partieAnnulee) return;
+
+    if (!partieCommencee) {
+      if (joueurs.size < 2) {
+        await repondre("❌ Pas assez de joueurs");
+        return;
+      }
+      partieCommencee = true;
+      clearInterval(timerInterval);
+    }
+
+    await ovl.sendMessage(ms_org, {
+      text:
+        `╔═════════════╗\n` +
+        `    🚀 DÉBUT DU JEU\n` +
+        `╚═════════════╝\n\n` +
+        `👥 Joueurs (${joueurs.size}) :\n` +
+        `${[...joueurs.values()].map(j => `  • @${j.id.split("@")[0]}`).join('\n')}\n\n` +
+        `🎯 Bonne chance à tous !`,
+      mentions: [...joueurs.keys()],
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    let tour = 1;
+    let joueursActifs = [...joueurs.values()];
+    let victoire25Lettres = false;
+
+    const getLongueursParTour = (t) => {
+      if (t === 1) return [3, 4];
+      if (t === 2) return [4, 5, 6];
+      if (t === 3) return [5, 6, 7];
+      if (t === 4) return [6, 7, 8];
+      if (t === 5) return [7, 8, 9];
+      if (t === 6) return [8, 9, 10];
+      if (t === 7) return [9, 10, 11];
+      if (t === 8) return [10, 11, 12];
+      if (t === 9) return [11, 12, 13];
+      if (t === 10) return [12, 13, 14];
+      if (t === 11) return [13, 14, 15];
+      if (t === 12) return [14, 15, 16];
+      if (t === 13) return [15, 16, 17];
+      if (t === 14) return [16, 17, 18];
+      if (t === 15) return [18, 19, 20];
+      if (t === 16) return [20, 21, 22];
+      if (t === 17) return [22, 23, 24];
+      return [25];
+    };
+
+    const getTempsParTour = (t) => {
+      if (t <= 4) return 10000;
+      if (t <= 6) return 15000;
+      if (t <= 8) return 18000;
+      if (t <= 10) return 20000;
+      if (t <= 14) return 25000;
+      return 30000;
+    };
+
+    while (joueursActifs.length > 1 && !partieAnnulee && !victoire25Lettres) {
+      const joueursCeTour = [...joueursActifs];
+      let reussitesCeTour = 0;
+      const tempsReponse = getTempsParTour(tour);
+      const secondes = Math.floor(tempsReponse / 1000);
+
+      await ovl.sendMessage(ms_org, {
+        text:
+          `\n━━━━━━━━━━━━━━━\n` +
+          `   🎯 TOUR ${tour}\n` +
+          `━━━━━━━━━━━━━━━━\n` +
+          `👥 ${joueursActifs.length} survivant${joueursActifs.length > 1 ? 's' : ''}\n` +
+          `⏱️ ${secondes}s par mot`,
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      for (const joueur of joueursCeTour) {
+        const longueursDisponibles = getLongueursParTour(tour);
+        const longueurDemandee = longueursDisponibles[Math.floor(Math.random() * longueursDisponibles.length)];
+
+        await ovl.sendMessage(ms_org, {
+          text:
+            `┌────── TOUR ─────┐\n` +
+            `│ @${joueur.id.split("@")[0]}\n` +
+            `│ Longueur : ${longueurDemandee} lettres\n` +
+            `└───────────────┘\n` +
+            `⏰ ${secondes} secondes !`,
+          mentions: [joueur.id],
+        });
+
+        let correct = false;
+        
+        try {
+          const rep = await ovl.recup_msg({ 
+            ms_org, 
+            auteur: joueur.id, 
+            temps: tempsReponse
+          });
+          
+          const txt = (rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "").trim();
+          const auteurRep = await getJid(rep?.key?.participant || rep?.key?.remoteJid || rep?.message?.senderKey, ms_org, ovl);
+
+          if (auteurRep !== joueur.id) {
+            throw new Error("Mauvais joueur");
+          }
+
+          if (txt.toLowerCase() === "stop" && auteurRep === createur) {
+            partieAnnulee = true;
+            await ovl.sendMessage(ms_org, {
+              text: `🛑 Partie interrompue`,
+            });
+            return;
+          }
+
+          const motPropose = normaliserTexte(txt);
+
+          if (motPropose.length !== longueurDemandee) {
+            await ovl.sendMessage(ms_org, {
+              text:
+                `❌ Éliminé : @${joueur.id.split("@")[0]}\n` +
+                `Raison : Longueur incorrecte (${motPropose.length} ≠ ${longueurDemandee})`,
+              mentions: [joueur.id],
+            });
+          } else if (motsUtilises.has(motPropose)) {
+            await ovl.sendMessage(ms_org, {
+              text:
+                `❌ Éliminé : @${joueur.id.split("@")[0]}\n` +
+                `Raison : Mot déjà utilisé`,
+              mentions: [joueur.id],
+            });
+          } else {
+            const existe = await verifierMotExiste(motPropose);
+            
+            if (existe) {
+              motsUtilises.add(motPropose);
+              joueur.score++;
+              correct = true;
+              reussitesCeTour++;
+              
+              if (longueurDemandee === 25) {
+                victoire25Lettres = true;
+                await ovl.sendMessage(ms_org, {
+                  text:
+                    `\n🏆🏆🏆 EXPLOIT ! 🏆🏆🏆\n\n` +
+                    `@${joueur.id.split("@")[0]} a trouvé un mot de 25 lettres !\n` +
+                    `Mot : *${txt.toUpperCase()}*\n\n` +
+                    `🎉 VICTOIRE ABSOLUE !`,
+                  mentions: [joueur.id],
+                });
+                break;
+              } else {
+                await ovl.sendMessage(ms_org, {
+                  text: `✅ *${txt.toUpperCase()}* validé !`,
+                });
+              }
+            } else {
+              await ovl.sendMessage(ms_org, {
+                text:
+                  `❌ Éliminé : @${joueur.id.split("@")[0]}\n` +
+                  `Raison : Mot inexistant`,
+                mentions: [joueur.id],
+              });
+            }
+          }
+        } catch (error) {
+          await ovl.sendMessage(ms_org, {
+            text:
+              `⏰ Temps écoulé : @${joueur.id.split("@")[0]}\n` +
+              `Éliminé !`,
+            mentions: [joueur.id],
+          });
+        }
+
+        if (!correct) joueur.elimine = true;
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      if (victoire25Lettres) break;
+
+      joueursActifs = joueursActifs.filter(j => !j.elimine);
+
+      if (partieAnnulee) return;
+
+      if (reussitesCeTour === 0) {
+        await ovl.sendMessage(ms_org, {
+          text: `\n💥 Aucun survivant au tour ${tour}\nFin de partie !`,
+        });
+        break;
+      }
+
+      if (joueursActifs.length > 1) {
+        tour++;
+        await ovl.sendMessage(ms_org, {
+          text:
+            `\n✅ Survivants :\n` +
+            `${joueursActifs.map(j => `  • @${j.id.split("@")[0]}`).join('\n')}\n\n` +
+            `⏭️ Passage au tour ${tour}...`,
+          mentions: joueursActifs.map(j => j.id),
+        });
+        await new Promise(resolve => setTimeout(resolve, 2500));
+      }
+    }
+
+    let final = "";
+    
+    if (victoire25Lettres) {
+      const vainqueurs = joueursActifs.filter(j => !j.elimine);
+      if (vainqueurs.length === 1) {
+        final =
+          `\n╔══════════════════════╗\n` +
+          `   🏆 VICTOIRE TOTALE 🏆\n` +
+          `╚══════════════════════╝\n\n` +
+          `👑 Champion ultime : @${vainqueurs[0].id.split("@")[0]}\n` +
+          `🎯 Score : ${vainqueurs[0].score} mot${vainqueurs[0].score > 1 ? 's' : ''}\n` +
+          `📈 Tours : ${tour}\n` +
+          `🏅 Exploit : Mot de 25 lettres !\n\n`;
+      } else {
+        final =
+          `\n╔══════════════════════╗\n` +
+          `   🏆 VICTOIRE TOTALE 🏆\n` +
+          `╚══════════════════════╝\n\n` +
+          `👑 Champions : ${vainqueurs.map(v => `@${v.id.split("@")[0]}`).join(', ')}\n` +
+          `📈 Tours : ${tour}\n` +
+          `🏅 Exploit : Mots de 25 lettres !\n\n`;
+      }
+    } else if (joueursActifs.length === 1) {
+      final =
+        `\n╔══════════════════════╗\n` +
+        `     👑 VICTOIRE ! 👑\n` +
+        `╚══════════════════════╝\n\n` +
+        `🏆 Vainqueur : @${joueursActifs[0].id.split("@")[0]}\n` +
+        `🎯 Score : ${joueursActifs[0].score} mot${joueursActifs[0].score > 1 ? 's' : ''}\n` +
+        `📈 Tours complétés : ${tour}\n\n`;
+    } else {
+      final = `\n💥 Fin de partie - Aucun survivant\n\n`;
+    }
+
+    const scoresTries = [...joueurs.values()].sort((a, b) => b.score - a.score);
+    
+    final += `━━━━━━━━━━━━━━━━━━━\n📊 CLASSEMENT FINAL\n━━━━━━━━━━━━━━━━━━━\n\n`;
+    
+    scoresTries.forEach((j, index) => {
+      const medaille = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`;
+      final += `${medaille} @${j.id.split("@")[0]} : ${j.score} mot${j.score > 1 ? 's' : ''}\n`;
+    });
+
+    final += `\n🎮 Tapez 'wcg' pour rejouer !`;
+
+    await ovl.sendMessage(ms_org, {
+      text: final,
+      mentions: [...joueurs.keys()],
+    });
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "pendu",
+    classe: "OVL-GAMES",
+    react: "🎯",
+    desc: "Jouez à plusieurs au jeu du Pendu",
+  },
+  async (ms_org, ovl, { repondre, auteur_Message, prenium_id, getJid }) => {
+    const joueurs = new Map();
+    const debutInscription = Date.now();
+    let mots = [];
+
+    try {
+      const rawData = fs.readFileSync('./lib/mots.json', 'utf8');
+      mots = JSON.parse(rawData);
+      mots = mots.filter(m => m.length >= 5 && m.length <= 10).sort(() => Math.random() - 0.5);
+    } catch (e) {
+      return repondre("❌ Impossible de récupérer les mots.");
+    }
+
+    function normaliserTexte(texte) {
+      return texte
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z]/g, "")
+        .trim();
+    }
+
+    const dessinerPendu = (erreurs) => {
+      const etapes = [
+        `
+  ____
+  |  |
+  |  
+  | 
+  | 
+  |
+__|__`,
+        `
+  ____
+  |  |
+  |  O
+  | 
+  | 
+  |
+__|__`,
+        `
+  ____
+  |  |
+  |  O
+  |  |
+  | 
+  |
+__|__`,
+        `
+  ____
+  |  |
+  |  O
+  | /|
+  | 
+  |
+__|__`,
+        `
+  ____
+  |  |
+  |  O
+  | /|\\
+  | 
+  |
+__|__`,
+        `
+  ____
+  |  |
+  |  O
+  | /|\\
+  | /
+  |
+__|__`,
+        `
+  ____
+  |  |
+  |  O
+  | /|\\
+  | / \\
+  |
+__|__ 💀`
+      ];
+      return etapes[erreurs] || etapes[0];
+    };
+
+    joueurs.set(auteur_Message, { id: auteur_Message, score: 0 });
+    const createur = auteur_Message || prenium_id;
+
+    await ovl.sendMessage(ms_org, {
+      text:
+        "🎮 *Jeu du PENDU - MULTIJOUEURS* 🎮\n\n" +
+        "Devinez le mot lettre par lettre !\n" +
+        "Tapez 'join' pour participer !\n" +
+        "🆕 Tapez 'start' pour commencer (créateur)\n" +
+        "❌ Tapez 'stop' pour annuler (créateur)\n" +
+        "⏳ Temps d'inscription : 60s\n" +
+        "💀 Maximum 6 erreurs par mot !",
+    });
+
+    const rappelTemps = [45000, 30000, 15000];
+    const rappelEnvoyes = new Set();
+    let partieCommencee = false;
+    let partieAnnulee = false;
+
+    const timerInterval = setInterval(async () => {
+      const restant = 60000 - (Date.now() - debutInscription);
+      if (restant <= 0 || partieCommencee || partieAnnulee) return clearInterval(timerInterval);
+      const secondesRestantes = Math.floor(restant / 1000);
+      for (let t of rappelTemps) {
+        if (secondesRestantes === t / 1000 && !rappelEnvoyes.has(t)) {
+          rappelEnvoyes.add(t);
+          await ovl.sendMessage(ms_org, {
+            text: `⏳ Temps restant : ${t / 1000}s ! Tapez *join* ou *start*.`,
+          });
+        }
+      }
+    }, 1000);
+
+    while (Date.now() - debutInscription < 60000 && !partieCommencee && !partieAnnulee) {
+      try {
+        const rep = await ovl.recup_msg({ ms_org, temps: 60000 - (Date.now() - debutInscription) });
+        const msg = (rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "").trim().toLowerCase();
+        const auteurLid = rep?.key?.participant || rep?.key?.remoteJid || rep?.message?.senderKey;
+        const auteur = await getJid(auteurLid, ms_org, ovl);
+        
+        if (msg === "join" && auteur && !joueurs.has(auteur)) {
+          joueurs.set(auteur, { id: auteur, score: 0 });
+          await ovl.sendMessage(ms_org, {
+            text: `✅ @${auteur.split("@")[0]} a rejoint ! (${joueurs.size} joueur${joueurs.size > 1 ? 's' : ''})`,
+            mentions: [auteur],
+          });
+        } else if (msg === "start" && auteur === createur) {
+          if (joueurs.size < 2) {
+            await ovl.sendMessage(ms_org, {
+              text: `❌ Minimum 2 joueurs requis. (Actuellement : ${joueurs.size})`,
+              mentions: [auteur],
+            });
+          } else {
+            partieCommencee = true;
+            clearInterval(timerInterval);
+            break;
+          }
+        } else if (msg === "stop" && auteur === createur) {
+          partieAnnulee = true;
+          clearInterval(timerInterval);
+          await ovl.sendMessage(ms_org, {
+            text: `🛑 Partie annulée par @${auteur.split("@")[0]}`,
+            mentions: [auteur],
+          });
+          return;
+        }
+      } catch {}
+    }
+
+    if (partieAnnulee) return;
+
+    if (!partieCommencee) {
+      if (joueurs.size < 2) {
+        await repondre("❌ Pas assez de joueurs. Partie annulée.");
+        return;
+      }
+      partieCommencee = true;
+      clearInterval(timerInterval);
+    }
+
+    await ovl.sendMessage(ms_org, {
+      text:
+        `🚀 *Début de la Partie*\n` +
+        `👥 Joueurs (${joueurs.size}) : ${[...joueurs.values()].map(j => `@${j.id.split("@")[0]}`).join(", ")}\n` +
+        `📝 Proposez des lettres à tour de rôle\n` +
+        `⏱️ 15 secondes par lettre\n` +
+        `Bonne chance ! 🍀`,
+      mentions: [...joueurs.keys()],
+    });
+
+    let manche = 1;
+    const motsUtilises = new Set();
+
+    while (manche <= 5 && !partieAnnulee) {
+      const motsDisponibles = mots.filter(m => !motsUtilises.has(normaliserTexte(m)));
+      if (motsDisponibles.length === 0) break;
+
+      const motSecret = motsDisponibles[Math.floor(Math.random() * motsDisponibles.length)];
+      motsUtilises.add(normaliserTexte(motSecret));
+      
+      const motNormalise = normaliserTexte(motSecret);
+      let lettresTrouvees = new Set();
+      let lettresEssayees = new Set();
+      let erreurs = 0;
+      const maxErreurs = 6;
+      
+      const afficherMot = () => {
+        return motSecret.split('').map(c => {
+          const cn = normaliserTexte(c);
+          return lettresTrouvees.has(cn) ? c.toUpperCase() : '_';
+        }).join(' ');
+      };
+
+      const motComplet = () => {
+        return motSecret.split('').every(c => lettresTrouvees.has(normaliserTexte(c)));
+      };
+
+      await ovl.sendMessage(ms_org, {
+        text:
+          `\n━━━━━━━━━━━━━━━━━━\n` +
+          `🎯 *MANCHE ${manche}/5*\n` +
+          `━━━━━━━━━━━━━━━━━━\n\n` +
+          `💡 Catégorie : Mot français\n` +
+          `📏 Longueur : ${motSecret.length} lettres\n` +
+          `❤️ Vies restantes : ${maxErreurs}\n\n` +
+          `Mot : ${afficherMot()}\n\n` +
+          `🎮 Proposez une lettre !`,
+      });
+
+      let joueursActifs = [...joueurs.values()];
+      let indexJoueur = 0;
+      let motTrouve = false;
+
+      while (erreurs < maxErreurs && !motComplet() && !partieAnnulee) {
+        const joueur = joueursActifs[indexJoueur % joueursActifs.length];
+
+        await ovl.sendMessage(ms_org, {
+          text:
+            `\n${dessinerPendu(erreurs)}\n\n` +
+            `Mot : ${afficherMot()}\n` +
+            `❌ Erreurs : ${erreurs}/${maxErreurs}\n` +
+            `📝 Essayées : ${lettresEssayees.size > 0 ? Array.from(lettresEssayees).join(', ').toUpperCase() : 'aucune'}\n\n` +
+            `🎯 Tour de @${joueur.id.split("@")[0]}\n` +
+            `💬 Proposez UNE lettre (15s)`,
+          mentions: [joueur.id],
+        });
+
+        try {
+          const rep = await ovl.recup_msg({ 
+            ms_org, 
+            auteur: joueur.id, 
+            temps: 15000 
+          });
+          
+          const txt = (rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "").trim();
+          const auteurRep = await getJid(rep?.key?.participant || rep?.key?.remoteJid || rep?.message?.senderKey, ms_org, ovl);
+
+          if (auteurRep !== joueur.id) {
+            indexJoueur++;
+            continue;
+          }
+
+          if (txt.toLowerCase() === "stop" && auteurRep === createur) {
+            partieAnnulee = true;
+            await ovl.sendMessage(ms_org, {
+              text: `🛑 Partie arrêtée par @${createur.split("@")[0]}`,
+              mentions: [createur],
+            });
+            return;
+          }
+
+          const lettre = normaliserTexte(txt);
+
+          if (lettre.length !== 1) {
+            await ovl.sendMessage(ms_org, {
+              text: `⚠️ @${joueur.id.split("@")[0]}, une seule lettre SVP !`,
+              mentions: [joueur.id],
+            });
+            continue;
+          }
+
+          if (lettresEssayees.has(lettre)) {
+            await ovl.sendMessage(ms_org, {
+              text: `⚠️ @${joueur.id.split("@")[0]}, "${lettre.toUpperCase()}" déjà essayée !`,
+              mentions: [joueur.id],
+            });
+            continue;
+          }
+
+          lettresEssayees.add(lettre);
+
+          if (motNormalise.includes(lettre)) {
+            lettresTrouvees.add(lettre);
+            joueur.score += 2;
+            await ovl.sendMessage(ms_org, {
+              text: `✅ Bien joué @${joueur.id.split("@")[0]} ! "${lettre.toUpperCase()}" est dans le mot ! (+2 pts)`,
+              mentions: [joueur.id],
+            });
+          } else {
+            erreurs++;
+            await ovl.sendMessage(ms_org, {
+              text: `❌ Dommage @${joueur.id.split("@")[0]}... "${lettre.toUpperCase()}" n'est pas dans le mot.`,
+              mentions: [joueur.id],
+            });
+          }
+
+          if (motComplet()) {
+            motTrouve = true;
+            joueur.score += 5;
+            await ovl.sendMessage(ms_org, {
+              text:
+                `\n🎉 *MOT TROUVÉ !* 🎉\n\n` +
+                `Mot : *${motSecret.toUpperCase()}*\n\n` +
+                `👑 @${joueur.id.split("@")[0]} a trouvé la dernière lettre ! (+5 pts bonus)\n` +
+                `✅ Erreurs : ${erreurs}/${maxErreurs}`,
+              mentions: [joueur.id],
+            });
+            break;
+          }
+
+          indexJoueur++;
+        } catch {
+          await ovl.sendMessage(ms_org, {
+            text: `⏰ Temps écoulé pour @${joueur.id.split("@")[0]} ! Tour suivant...`,
+            mentions: [joueur.id],
+          });
+          indexJoueur++;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      if (partieAnnulee) return;
+
+      if (!motTrouve && erreurs >= maxErreurs) {
+        await ovl.sendMessage(ms_org, {
+          text:
+            `\n${dessinerPendu(maxErreurs)}\n\n` +
+            `💀 *PENDU !*\n\n` +
+            `Le mot était : *${motSecret.toUpperCase()}*\n` +
+            `Dommage, personne n'a trouvé...`,
+        });
+      }
+
+      if (manche < 5) {
+        manche++;
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        await ovl.sendMessage(ms_org, {
+          text:
+            `\n━━━━━━━━━━━━━━━━━━\n` +
+            `📊 *Scores actuels :*\n` +
+            `${[...joueurs.values()].sort((a, b) => b.score - a.score).map(j => `• @${j.id.split("@")[0]} : ${j.score} pts`).join('\n')}\n` +
+            `━━━━━━━━━━━━━━━━━━\n\n` +
+            `⏭️ Manche suivante dans 3 secondes...`,
+          mentions: [...joueurs.keys()],
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      } else {
+        break;
+      }
+    }
+
+    let final = `\n━━━━━━━━━━━━━━━━━━━━━━\n🏆 *FIN DE LA PARTIE* 🏆\n━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    
+    const scoresTries = [...joueurs.values()].sort((a, b) => b.score - a.score);
+    
+    if (scoresTries.length > 0) {
+      final += `👑 *VAINQUEUR* : @${scoresTries[0].id.split("@")[0]} avec ${scoresTries[0].score} points !\n\n`;
+    }
+
+    final += `📊 *Classement Final :*\n`;
+    scoresTries.forEach((j, index) => {
+      const medaille = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "  ";
+      final += `${medaille} @${j.id.split("@")[0]} : ${j.score} point(s)\n`;
+    });
+
+    final += `\n🎮 GG à tous ! Tapez *pendu* pour rejouer.`;
+
+    await ovl.sendMessage(ms_org, {
+      text: final,
+      mentions: [...joueurs.keys()],
+    });
+  }
+);
+
+
