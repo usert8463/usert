@@ -913,27 +913,27 @@ ovlcmd(
       const vainqueurs = joueursActifs.filter(j => !j.elimine);
       if (vainqueurs.length === 1) {
         final =
-          `\n╔══════════════════════╗\n` +
+          `\n╔══════════════════╗\n` +
           `   🏆 VICTOIRE TOTALE 🏆\n` +
-          `╚══════════════════════╝\n\n` +
+          `╚══════════════════╝\n\n` +
           `👑 Champion ultime : @${vainqueurs[0].id.split("@")[0]}\n` +
           `🎯 Score : ${vainqueurs[0].score} mot${vainqueurs[0].score > 1 ? 's' : ''}\n` +
           `📈 Tours : ${tour}\n` +
           `🏅 Exploit : Mot de 25 lettres !\n\n`;
       } else {
         final =
-          `\n╔══════════════════════╗\n` +
+          `\n╔══════════════════╗\n` +
           `   🏆 VICTOIRE TOTALE 🏆\n` +
-          `╚══════════════════════╝\n\n` +
+          `╚══════════════════╝\n\n` +
           `👑 Champions : ${vainqueurs.map(v => `@${v.id.split("@")[0]}`).join(', ')}\n` +
           `📈 Tours : ${tour}\n` +
           `🏅 Exploit : Mots de 25 lettres !\n\n`;
       }
     } else if (joueursActifs.length === 1) {
       final =
-        `\n╔══════════════════════╗\n` +
+        `\n╔══════════════════╗\n` +
         `     👑 VICTOIRE ! 👑\n` +
-        `╚══════════════════════╝\n\n` +
+        `╚══════════════════╝\n\n` +
         `🏆 Vainqueur : @${joueursActifs[0].id.split("@")[0]}\n` +
         `🎯 Score : ${joueursActifs[0].score} mot${joueursActifs[0].score > 1 ? 's' : ''}\n` +
         `📈 Tours complétés : ${tour}\n\n`;
