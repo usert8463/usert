@@ -954,7 +954,7 @@ ovlcmd(
           `   🏆 VICTOIRE TOTALE 🏆\n` +
           `╚══════════════════╝\n\n` +
           `👑 Champion ultime : @${vainqueurs[0].id.split("@")[0]}\n` +
-          `🎯 Score : ${vainqueurs[0].score} mot${vainqueurs[0].score > 1 ? 's' : ''}\n` +
+          `🎯 Score : ${vainqueurs[0].score} point${vainqueurs[0].score > 1 ? 's' : ''}\n` +
           `📈 Tours : ${tour}\n` +
           `🏅 Exploit : Mot de 25 lettres !\n\n`;
       } else {
@@ -972,7 +972,7 @@ ovlcmd(
         `     👑 VICTOIRE ! 👑\n` +
         `╚══════════════════╝\n\n` +
         `🏆 Vainqueur : @${joueursActifs[0].id.split("@")[0]}\n` +
-        `🎯 Score : ${joueursActifs[0].score} mot${joueursActifs[0].score > 1 ? 's' : ''}\n` +
+        `🎯 Score : ${joueursActifs[0].score} point${joueursActifs[0].score > 1 ? 's' : ''}\n` +
         `📈 Tours complétés : ${tour}\n\n`;
     } else {
       final = `\n💥 Fin de partie - Aucun survivant\n\n`;
@@ -984,7 +984,7 @@ ovlcmd(
     
     scoresTries.forEach((j, index) => {
       const medaille = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`;
-      final += `${medaille} @${j.id.split("@")[0]} : ${j.score} mot${j.score > 1 ? 's' : ''}\n`;
+      final += `${medaille} @${j.id.split("@")[0]} : ${j.score} point${j.score > 1 ? 's' : ''}\n`;
     });
 
     final += `\n🎮 Tapez 'wcg' pour rejouer !`;
