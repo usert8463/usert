@@ -614,24 +614,24 @@ ovlcmd(
     const motsUtilises = new Set();
 
     async function verifierMotExiste(mot) {
-  try {
-    const motNormalise = mot;
-    const url = `https://fr.wiktionary.org/wiki/${encodeURIComponent(motNormalise)}`;
+      try {
+        const motNormalise = mot;
+        const url = `https://fr.wiktionary.org/wiki/${encodeURIComponent(motNormalise)}`;
 
-    const response = await fetch(url);
-    if (!response.ok) return false;
+        const response = await fetch(url);
+        if (!response.ok) return false;
 
-    const html = await response.text();
+        const html = await response.text();
 
-    if (html.includes("Pas de résultat pour")) {
-      return false;
+        if (html.includes("Pas de résultat pour")) {
+          return false;
+        }
+
+        return true;
+      } catch {
+        return false;
+      }
     }
-
-    return true;
-  } catch {
-    return false;
-  }
-}
 
     joueurs.set(auteur_Message, { id: auteur_Message, score: 0 });
     const createur = auteur_Message || prenium_id;
@@ -793,87 +793,115 @@ ovlcmd(
         });
 
         let correct = false;
-        
-        try {
-          const rep = await ovl.recup_msg({ 
-            ms_org, 
-            auteur: joueur.id, 
-            temps: tempsReponse
-          });
-          
-          const txt = (rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "").trim();
-          const auteurRep = await getJid(rep?.key?.participant || rep?.key?.remoteJid || rep?.message?.senderKey, ms_org, ovl);
+        let tentativesRestantes = 3; // Permettre jusqu'à 3 messages non-textuels
 
-          if (auteurRep !== joueur.id) {
-            throw new Error("Mauvais joueur");
-          }
-
-          if (txt.toLowerCase() === "stop" && auteurRep === createur) {
-            partieAnnulee = true;
-            await ovl.sendMessage(ms_org, {
-              text: `🛑 Partie interrompue`,
+        while (tentativesRestantes > 0 && !correct) {
+          try {
+            const rep = await ovl.recup_msg({ 
+              ms_org, 
+              auteur: joueur.id, 
+              temps: tempsReponse
             });
-            return;
-          }
-
-          const motPropose = normaliserTexte(txt);
-
-          if (motPropose.length < longueurDemandee) {
-            await ovl.sendMessage(ms_org, {
-              text:
-                `❌ Éliminé : @${joueur.id.split("@")[0]}\n` +
-                `Raison : Longueur incorrecte (${motPropose.length} < ${longueurDemandee})`,
-              mentions: [joueur.id],
-            });
-          } else if (motsUtilises.has(motPropose)) {
-            await ovl.sendMessage(ms_org, {
-              text:
-                `❌ Éliminé : @${joueur.id.split("@")[0]}\n` +
-                `Raison : Mot déjà utilisé`,
-              mentions: [joueur.id],
-            });
-          } else {
-            const existe = await verifierMotExiste(motPropose);
             
-            if (existe) {
-              motsUtilises.add(motPropose);
-              joueur.score++;
-              correct = true;
-              reussitesCeTour++;
-              
-              if (longueurDemandee === 25) {
-                victoire25Lettres = true;
+            const txt = (rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "").trim();
+            const auteurRep = await getJid(rep?.key?.participant || rep?.key?.remoteJid || rep?.message?.senderKey, ms_org, ovl);
+
+            if (auteurRep !== joueur.id) {
+              throw new Error("Mauvais joueur");
+            }
+
+            // Vérifier si c'est un message texte valide
+            if (!txt || txt === "") {
+              tentativesRestantes--;
+              if (tentativesRestantes > 0) {
+                await ovl.sendMessage(ms_org, {
+                  text: `⚠️ @${joueur.id.split("@")[0]}, envoyez un MESSAGE TEXTE svp !\n⏰ ${tentativesRestantes} tentative${tentativesRestantes > 1 ? 's' : ''} restante${tentativesRestantes > 1 ? 's' : ''}`,
+                  mentions: [joueur.id],
+                });
+                continue;
+              } else {
                 await ovl.sendMessage(ms_org, {
                   text:
-                    `\n🏆🏆🏆 EXPLOIT ! 🏆🏆🏆\n\n` +
-                    `@${joueur.id.split("@")[0]} a trouvé un mot de 25 lettres !\n` +
-                    `Mot : *${txt.toUpperCase()}*\n\n` +
-                    `🎉 VICTOIRE ABSOLUE !`,
+                    `❌ Éliminé : @${joueur.id.split("@")[0]}\n` +
+                    `Raison : Aucun message texte envoyé`,
                   mentions: [joueur.id],
                 });
                 break;
-              } else {
-                await ovl.sendMessage(ms_org, {
-                  text: `✅ *${txt.toUpperCase()}* validé !`,
-                });
               }
-            } else {
+            }
+
+            if (txt.toLowerCase() === "stop" && auteurRep === createur) {
+              partieAnnulee = true;
+              await ovl.sendMessage(ms_org, {
+                text: `🛑 Partie interrompue`,
+              });
+              return;
+            }
+
+            const motPropose = txt;
+
+            if (motPropose.length < longueurDemandee) {
               await ovl.sendMessage(ms_org, {
                 text:
                   `❌ Éliminé : @${joueur.id.split("@")[0]}\n` +
-                  `Raison : Mot inexistant`,
+                  `Raison : Longueur incorrecte (${motPropose.length} < ${longueurDemandee})`,
                 mentions: [joueur.id],
               });
+              break;
+            } else if (motsUtilises.has(motPropose.toLowerCase())) {
+              await ovl.sendMessage(ms_org, {
+                text:
+                  `❌ Éliminé : @${joueur.id.split("@")[0]}\n` +
+                  `Raison : Mot déjà utilisé`,
+                mentions: [joueur.id],
+              });
+              break;
+            } else {
+              const existe = await verifierMotExiste(motPropose);
+              
+              if (existe) {
+                motsUtilises.add(motPropose.toLowerCase());
+                joueur.score++;
+                correct = true;
+                reussitesCeTour++;
+                
+                if (longueurDemandee === 25) {
+                  victoire25Lettres = true;
+                  await ovl.sendMessage(ms_org, {
+                    text:
+                      `\n🏆🏆🏆 EXPLOIT ! 🏆🏆🏆\n\n` +
+                      `@${joueur.id.split("@")[0]} a trouvé un mot de 25 lettres !\n` +
+                      `Mot : *${txt.toUpperCase()}*\n\n` +
+                      `🎉 VICTOIRE ABSOLUE !`,
+                    mentions: [joueur.id],
+                  });
+                  break;
+                } else {
+                  await ovl.sendMessage(ms_org, {
+                    text: `✅ *${txt.toUpperCase()}* validé !`,
+                  });
+                }
+                break;
+              } else {
+                await ovl.sendMessage(ms_org, {
+                  text:
+                    `❌ Éliminé : @${joueur.id.split("@")[0]}\n` +
+                    `Raison : Mot inexistant`,
+                  mentions: [joueur.id],
+                });
+                break;
+              }
             }
+          } catch (err) {
+            console.error(err);
+            await ovl.sendMessage(ms_org, {
+              text:
+                `⏰ Temps écoulé : @${joueur.id.split("@")[0]}\n` +
+                `Éliminé !`,
+              mentions: [joueur.id],
+            });
+            break;
           }
-        } catch (err) {
-          console.error(err);
-          await ovl.sendMessage(ms_org, {
-            text:
-              `⏰ Temps écoulé : @${joueur.id.split("@")[0]}\n` +
-              `Éliminé !`,
-            mentions: [joueur.id],
-          });
         }
 
         if (!correct) joueur.elimine = true;
@@ -958,397 +986,3 @@ ovlcmd(
     });
   }
 );
-
-/*ovlcmd(
-  {
-    nom_cmd: "pendu",
-    classe: "OVL-GAMES",
-    react: "🎯",
-    desc: "Jouez à plusieurs au jeu du Pendu",
-  },
-  async (ms_org, ovl, { repondre, auteur_Message, prenium_id, getJid }) => {
-    const joueurs = new Map();
-    const debutInscription = Date.now();
-    let mots = [];
-
-    try {
-      const rawData = fs.readFileSync('./lib/mots.json', 'utf8');
-      mots = JSON.parse(rawData);
-      mots = mots.filter(m => m.length >= 5 && m.length <= 10).sort(() => Math.random() - 0.5);
-    } catch (e) {
-      return repondre("❌ Impossible de récupérer les mots.");
-    }
-
-    function normaliserTexte(texte) {
-      return texte
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z]/g, "")
-        .trim();
-    }
-
-    const dessinerPendu = (erreurs) => {
-      const etapes = [
-        `
-  ____
-  |  |
-  |  
-  | 
-  | 
-  |
-__|__`,
-        `
-  ____
-  |  |
-  |  O
-  | 
-  | 
-  |
-__|__`,
-        `
-  ____
-  |  |
-  |  O
-  |  |
-  | 
-  |
-__|__`,
-        `
-  ____
-  |  |
-  |  O
-  | /|
-  | 
-  |
-__|__`,
-        `
-  ____
-  |  |
-  |  O
-  | /|\\
-  | 
-  |
-__|__`,
-        `
-  ____
-  |  |
-  |  O
-  | /|\\
-  | /
-  |
-__|__`,
-        `
-  ____
-  |  |
-  |  O
-  | /|\\
-  | / \\
-  |
-__|__ 💀`
-      ];
-      return etapes[erreurs] || etapes[0];
-    };
-
-    joueurs.set(auteur_Message, { id: auteur_Message, score: 0, elimine: false });
-    const createur = auteur_Message || prenium_id;
-
-    await ovl.sendMessage(ms_org, {
-      text:
-        "🎮 *Jeu du PENDU - MULTIJOUEURS* 🎮\n\n" +
-        "Devinez le mot lettre par lettre !\n" +
-        "Tapez 'join' pour participer !\n" +
-        "🆕 Tapez 'start' pour commencer (créateur)\n" +
-        "❌ Tapez 'stop' pour annuler (créateur)\n" +
-        "⏳ Temps d'inscription : 60s\n" +
-        "💀 Maximum 6 erreurs par mot !",
-    });
-
-    const rappelTemps = [45000, 30000, 15000];
-    const rappelEnvoyes = new Set();
-    let partieCommencee = false;
-    let partieAnnulee = false;
-
-    const timerInterval = setInterval(async () => {
-      const restant = 60000 - (Date.now() - debutInscription);
-      if (restant <= 0 || partieCommencee || partieAnnulee) return clearInterval(timerInterval);
-      const secondesRestantes = Math.floor(restant / 1000);
-      for (let t of rappelTemps) {
-        if (secondesRestantes === t / 1000 && !rappelEnvoyes.has(t)) {
-          rappelEnvoyes.add(t);
-          await ovl.sendMessage(ms_org, {
-            text: `⏰ Plus que ${t / 1000}s pour rejoindre !`,
-          });
-        }
-      }
-    }, 1000);
-
-    while (Date.now() - debutInscription < 60000 && !partieCommencee && !partieAnnulee) {
-      try {
-        const rep = await ovl.recup_msg({ ms_org, temps: 60000 - (Date.now() - debutInscription) });
-        const msg = (rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "").trim().toLowerCase();
-        const auteurLid = rep?.key?.participant || rep?.key?.remoteJid || rep?.message?.senderKey;
-        const auteur = await getJid(auteurLid, ms_org, ovl);
-        
-        if (msg === "join" && auteur && !joueurs.has(auteur)) {
-          joueurs.set(auteur, { id: auteur, score: 0, elimine: false });
-          await ovl.sendMessage(ms_org, {
-            text: `✅ @${auteur.split("@")[0]} a rejoint ! (${joueurs.size} joueur${joueurs.size > 1 ? 's' : ''})`,
-            mentions: [auteur],
-          });
-        } else if (msg === "start" && auteur === createur) {
-          if (joueurs.size < 2) {
-            await ovl.sendMessage(ms_org, {
-              text: `❌ Minimum 2 joueurs requis. (Actuellement : ${joueurs.size})`,
-              mentions: [auteur],
-            });
-          } else {
-            partieCommencee = true;
-            clearInterval(timerInterval);
-            break;
-          }
-        } else if (msg === "stop" && auteur === createur) {
-          partieAnnulee = true;
-          clearInterval(timerInterval);
-          await ovl.sendMessage(ms_org, {
-            text: `🛑 Partie annulée par @${auteur.split("@")[0]}`,
-            mentions: [auteur],
-          });
-          return;
-        }
-      } catch {}
-    }
-
-    if (partieAnnulee) return;
-
-    if (!partieCommencee) {
-      if (joueurs.size < 2) {
-        await repondre("❌ Pas assez de joueurs. Partie annulée.");
-        return;
-      }
-      partieCommencee = true;
-      clearInterval(timerInterval);
-    }
-
-    await ovl.sendMessage(ms_org, {
-      text:
-        `🚀 *Début de la Partie*\n` +
-        `👥 Joueurs (${joueurs.size}) : ${[...joueurs.values()].map(j => `@${j.id.split("@")[0]}`).join(", ")}\n` +
-        `📝 Proposez des lettres à tour de rôle\n` +
-        `⏱️ 15 secondes par lettre\n` +
-        `🎯 Dernier survivant gagne !\n` +
-        `Bonne chance ! 🍀`,
-      mentions: [...joueurs.keys()],
-    });
-
-    let manche = 1;
-    const motsUtilises = new Set();
-    let joueursActifs = [...joueurs.values()];
-
-    while (joueursActifs.length > 1 && !partieAnnulee) {
-      const motsDisponibles = mots.filter(m => !motsUtilises.has(normaliserTexte(m)));
-      if (motsDisponibles.length === 0) break;
-
-      const motSecret = motsDisponibles[Math.floor(Math.random() * motsDisponibles.length)];
-      motsUtilises.add(normaliserTexte(motSecret));
-      
-      const motNormalise = normaliserTexte(motSecret);
-      let lettresTrouvees = new Set();
-      let lettresEssayees = new Set();
-      let erreurs = 0;
-      const maxErreurs = 6;
-      
-      const afficherMot = () => {
-        return motSecret.split('').map(c => {
-          const cn = normaliserTexte(c);
-          return lettresTrouvees.has(cn) ? c.toUpperCase() : '_';
-        }).join(' ');
-      };
-
-      const motComplet = () => {
-        return motSecret.split('').every(c => lettresTrouvees.has(normaliserTexte(c)));
-      };
-
-      await ovl.sendMessage(ms_org, {
-        text:
-          `\n━━━━━━━━━━━━━━━━━━\n` +
-          `🎯 *MANCHE ${manche}*\n` +
-          `━━━━━━━━━━━━━━━━━━\n\n` +
-          `👥 ${joueursActifs.length} survivant${joueursActifs.length > 1 ? 's' : ''}\n` +
-          `📏 Longueur : ${motSecret.length} lettres\n` +
-          `❤️ Vies : ${maxErreurs}\n\n` +
-          `Mot : ${afficherMot()}\n\n` +
-          `🎮 Proposez une lettre !`,
-      });
-
-      let indexJoueur = 0;
-      let motTrouve = false;
-      const joueursEliminairesCeMot = new Set();
-
-      while (erreurs < maxErreurs && !motComplet() && !partieAnnulee) {
-        const joueur = joueursActifs[indexJoueur % joueursActifs.length];
-
-        if (joueursEliminairesCeMot.has(joueur.id)) {
-          indexJoueur++;
-          continue;
-        }
-
-        await ovl.sendMessage(ms_org, {
-          text:
-            `\n${dessinerPendu(erreurs)}\n\n` +
-            `Mot : ${afficherMot()}\n` +
-            `❌ Erreurs : ${erreurs}/${maxErreurs}\n` +
-            `📝 Essayées : ${lettresEssayees.size > 0 ? Array.from(lettresEssayees).join(', ').toUpperCase() : 'aucune'}\n\n` +
-            `🎯 Tour de @${joueur.id.split("@")[0]}\n` +
-            `💬 Proposez UNE lettre (15s)`,
-          mentions: [joueur.id],
-        });
-
-        try {
-          const rep = await ovl.recup_msg({ 
-            ms_org, 
-            auteur: joueur.id, 
-            temps: 15000 
-          });
-          
-          const txt = (rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "").trim();
-          const auteurRep = await getJid(rep?.key?.participant || rep?.key?.remoteJid || rep?.message?.senderKey, ms_org, ovl);
-
-          if (auteurRep !== joueur.id) {
-            indexJoueur++;
-            continue;
-          }
-
-          if (txt.toLowerCase() === "stop" && auteurRep === createur) {
-            partieAnnulee = true;
-            await ovl.sendMessage(ms_org, {
-              text: `🛑 Partie arrêtée par @${createur.split("@")[0]}`,
-              mentions: [createur],
-            });
-            return;
-          }
-
-          const lettre = normaliserTexte(txt);
-
-          if (lettre.length !== 1) {
-            await ovl.sendMessage(ms_org, {
-              text: `⚠️ @${joueur.id.split("@")[0]}, une seule lettre SVP !`,
-              mentions: [joueur.id],
-            });
-            continue;
-          }
-
-          if (lettresEssayees.has(lettre)) {
-            await ovl.sendMessage(ms_org, {
-              text: `⚠️ @${joueur.id.split("@")[0]}, "${lettre.toUpperCase()}" déjà essayée !`,
-              mentions: [joueur.id],
-            });
-            continue;
-          }
-
-          lettresEssayees.add(lettre);
-
-          if (motNormalise.includes(lettre)) {
-            lettresTrouvees.add(lettre);
-            joueur.score++;
-            await ovl.sendMessage(ms_org, {
-              text: `✅ Bien joué @${joueur.id.split("@")[0]} ! "${lettre.toUpperCase()}" est dans le mot ! (+1 pt)`,
-              mentions: [joueur.id],
-            });
-          } else {
-            erreurs++;
-            await ovl.sendMessage(ms_org, {
-              text: `❌ Dommage @${joueur.id.split("@")[0]}... "${lettre.toUpperCase()}" n'est pas dans le mot.`,
-              mentions: [joueur.id],
-            });
-          }
-
-          if (motComplet()) {
-            motTrouve = true;
-            joueur.score += 3;
-            await ovl.sendMessage(ms_org, {
-              text:
-                `\n🎉 *MOT TROUVÉ !* 🎉\n\n` +
-                `Mot : *${motSecret.toUpperCase()}*\n\n` +
-                `👑 @${joueur.id.split("@")[0]} a trouvé la dernière lettre ! (+3 pts bonus)\n` +
-                `✅ Erreurs : ${erreurs}/${maxErreurs}`,
-              mentions: [joueur.id],
-            });
-            break;
-          }
-
-          indexJoueur++;
-        } catch {
-          joueursEliminairesCeMot.add(joueur.id);
-          joueur.elimine = true;
-          await ovl.sendMessage(ms_org, {
-            text: `⏰ Temps écoulé ! @${joueur.id.split("@")[0]} est éliminé !`,
-            mentions: [joueur.id],
-          });
-          indexJoueur++;
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-
-      if (partieAnnulee) return;
-
-      if (!motTrouve && erreurs >= maxErreurs) {
-        await ovl.sendMessage(ms_org, {
-          text:
-            `\n${dessinerPendu(maxErreurs)}\n\n` +
-            `💀 *PENDU !*\n\n` +
-            `Le mot était : *${motSecret.toUpperCase()}*\n` +
-            `Tous les survivants continuent...`,
-        });
-      }
-
-      joueursActifs = joueursActifs.filter(j => !j.elimine);
-
-      if (joueursActifs.length <= 1) break;
-
-      manche++;
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      await ovl.sendMessage(ms_org, {
-        text:
-          `\n━━━━━━━━━━━━━━━━━━\n` +
-          `📊 Fin de la manche ${manche - 1}\n` +
-          `━━━━━━━━━━━━━━━━━━\n\n` +
-          `✅ Survivants : ${joueursActifs.map(j => `@${j.id.split("@")[0]}`).join(', ')}\n\n` +
-          `⏭️ Manche ${manche} dans 3s...`,
-        mentions: joueursActifs.map(j => j.id),
-      });
-      
-      await new Promise(resolve => setTimeout(resolve, 3000));
-    }
-
-    let final = `\n━━━━━━━━━━━━━━━━━━━━━━\n🏆 *FIN DE LA PARTIE* 🏆\n━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    
-    const scoresTries = [...joueurs.values()].sort((a, b) => b.score - a.score);
-    
-    if (joueursActifs.length === 1) {
-      final += `👑 *VAINQUEUR* : @${joueursActifs[0].id.split("@")[0]} avec ${joueursActifs[0].score} points !\n`;
-      final += `📈 Manches jouées : ${manche}\n\n`;
-    } else if (joueursActifs.length > 1) {
-      final += `🏆 *SURVIVANTS* : ${joueursActifs.map(j => `@${j.id.split("@")[0]}`).join(', ')}\n`;
-      final += `📈 Manches jouées : ${manche}\n\n`;
-    } else {
-      final += `💀 Aucun survivant !\n📈 Manches jouées : ${manche}\n\n`;
-    }
-
-    final += `📊 *Classement Final :*\n`;
-    scoresTries.forEach((j, index) => {
-      const medaille = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "  ";
-      final += `${medaille} @${j.id.split("@")[0]} : ${j.score} point(s)\n`;
-    });
-
-    final += `\n🎮 GG à tous ! Tapez *pendu* pour rejouer.`;
-
-    await ovl.sendMessage(ms_org, {
-      text: final,
-      mentions: [...joueurs.keys()],
-    });
-  }
-);
-*/
