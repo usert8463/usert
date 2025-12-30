@@ -64,7 +64,7 @@ async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {
           : (msg.key.senderPn || msg.key.participantAlt || msg.key.participant)
             ? await getJid(msg.key.senderPn || msg.key.participantAlt || msg.key.participant || msg.key.remoteJid, idSalon, ovl)
             : idSalon;
-console.log(expJid)
+        
         const match =
           (auteur_jid && ms_org && expJid == auteur_jid && idSalon == ms_org) ||
           (auteur_jid && !ms_org && expJid == auteur_jid) ||
