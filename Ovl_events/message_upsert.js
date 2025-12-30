@@ -44,7 +44,6 @@ async function message_upsert(m, ovl) {
 
     addMessage(ms.key.id, ms);
     const mtype = getContentType(ms.message);
-console.log(ms);
     const texte = {
       conversation: ms.message.conversation,
       imageMessage: ms.message.imageMessage?.caption,
