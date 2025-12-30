@@ -59,6 +59,7 @@ async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {
         ? decodeJid(ovl.user.id)
         : (msg.key.remoteJidAlt || msg.key.remoteJid);
         console.log(idSalon)
+        console.log(ms_org);
         let expJid = msg.key.fromMe
           ? decodeJid(ovl.user.id)
           : (msg.key.senderPn || msg.key.participantAlt || msg.key.participant)
