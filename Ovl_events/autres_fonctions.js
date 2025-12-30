@@ -54,12 +54,15 @@ async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {
       if (type !== "notify") return;
 
       for (const msg of messages) {
-        const idSalon = msg.key.remoteJidAlt || msg.key.remoteJid;
-
+        const idSalon =
+      (msg.key.remoteJidAlt || msg.key.remoteJid) === decodeJid(ovl.user.lid)
+        ? decodeJid(ovl.user.id)
+        : (msg.key.remoteJidAlt || msg.key.remoteJid);
+        
         let expJid = msg.key.fromMe
           ? decodeJid(ovl.user.id)
           : (msg.key.senderPn || msg.key.participantAlt || msg.key.participant)
-            ? await getJid(msg.key.senderPn || msg.key.participantAlt || msg.key.participant, idSalon, ovl)
+            ? await getJid(msg.key.senderPn || msg.key.participantAlt || msg.key.participant || msg.key.remoteJid, idSalon, ovl)
             : idSalon;
 
         const match =
@@ -74,7 +77,7 @@ async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {
 
           if ((msg.key.participantAlt || msg.key.participant) && !msg.key.fromMe) {
             msg.key.participant = await getJid(
-              msg.key.participantAlt || msg.key.participant,
+              msg.key.senderPn || msg.key.participantAlt || msg.key.participant || msg.key.remoteJid,
               idSalon,
               ovl
             );
