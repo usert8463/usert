@@ -625,7 +625,7 @@ ovlcmd(
     async function verifierMotExiste(mot) {
       try {
         const motNormalise = normaliserTexte(mot);
-        const url = `https://fr.wiktionary.org/wiki/${encodeURIComponent(motNormalise)}`;
+        const url = `https://fr.wiktionary.org/wiki/${motNormalise}`;
 
         const response = await fetch(url);
         if (!response.ok) return false;
