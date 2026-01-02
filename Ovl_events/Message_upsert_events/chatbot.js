@@ -12,42 +12,33 @@ async function chatbot(
   auteur_Message
 ) {
   try {
-    if (verif_Groupe) {
-      if (!mention_JID.includes(id_Bot) && auteur_Msg_Repondu !== id_Bot) return;
-    } else {
-      if (!texte) return;
-    }
+    if (verif_Groupe && !mention_JID.includes(id_Bot) && auteur_Msg_Repondu !== id_Bot) return
+    if (!texte) return
 
-    if (!texte) return;
+    const conf = await ChatbotConf.findByPk('1')
+    if (!conf) return
 
-    const conf = await ChatbotConf.findByPk('1');
-    if (!conf) return;
+    let enabledIds = []
+    try { enabledIds = JSON.parse(conf.enabled_ids || '[]') } catch {}
+    const localActif = enabledIds.includes(ms_org)
+    const globalActif = verif_Groupe ? conf.chatbot_gc === 'oui' : conf.chatbot_pm === 'oui'
+    if (!(localActif || globalActif)) return
 
-    let enabledIds = [];
-    try {
-      enabledIds = JSON.parse(conf.enabled_ids || '[]');
-    } catch {
-      enabledIds = [];
-    }
-
-    const localActif = enabledIds.includes(ms_org);
-    const globalActif = verif_Groupe
-      ? conf.chatbot_gc === 'oui'
-      : conf.chatbot_pm === 'oui';
-
-    if (!(localActif || globalActif)) return;
-    
     const uniqueId = `${ms_org}-${auteur_Message}`
 
-    const response = await axios.get(
-  `https://uta-f1kg.onrender.com/chatbot?user_id=${encodeURIComponent(uniqueId)}&text=${encodeURIComponent(texte)}`
-);
-    
+    const response = await axios.get('https://uta-f1kg.onrender.com/chatbot', {
+      params: {
+        user_id: auteur_Message,
+        text: texte
+      }
+    })
+
     if (response.data?.text) return repondre(response.data.text)
 
   } catch (err) {
-    console.error('Erreur chatbot WebAI :', err)
+    console.error('Erreur chatbot WebAI :', err.message)
   }
 }
 
-module.exports = chatbot;
+module.exports = chatbot
+
