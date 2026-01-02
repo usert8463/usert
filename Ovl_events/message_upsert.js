@@ -38,6 +38,8 @@ async function isBanned(type, id) {
 
 async function message_upsert(m, ovl) {
   try {
+    console.log(m);
+    console.log(m.type);
     if (m.type !== 'notify') return;
     const ms = m.messages?.[0];
     if (!ms?.message) return;
