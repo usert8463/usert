@@ -682,9 +682,7 @@ ovlcmd(
       try {
         const rep = await ovl.recup_msg({ ms_org, temps: 60000 - (Date.now() - debutInscription) });
         const msg = (rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "").trim().toLowerCase();
-          console.log(msg)
         const auteurLid = rep?.key?.participant || rep?.key?.remoteJid || rep?.message?.senderKey;
-          console.log(auteurLid)
         const auteur = await getJid(auteurLid, ms_org, ovl);
         
         if (msg === "join" && auteur && !joueurs.has(auteur)) {
