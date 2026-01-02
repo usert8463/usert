@@ -49,6 +49,8 @@ async function chatbot(
       }
     );
 
+    await new Promise(r => setTimeout(r, 500));
+    
     const response = await axios.get(
       'https://api-ovl.koyeb.app/response',
       {
