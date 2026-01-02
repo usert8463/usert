@@ -39,13 +39,10 @@ async function chatbot(
     
     const uniqueId = `${ms_org}-${auteur_Message}`
 
-    const response = await axios.get('https://uta-f1kg.onrender.com/chatbot', {
-      params: {
-        user_id: uniqueId,
-        text: texte
-      }
-    })
-console.log(response.data)
+    const response = await axios.get(
+  `https://uta-f1kg.onrender.com/chatbot?user_id=${encodeURIComponent(uniqueId)}&text=${encodeURIComponent(texte)}`
+);
+    
     if (response.data?.text) return repondre(response.data.text)
 
   } catch (err) {
