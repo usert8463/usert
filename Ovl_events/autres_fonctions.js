@@ -70,8 +70,7 @@ async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {
           (auteur_jid && !ms_org && expJid == auteur_jid) ||
           (!auteur_jid && ms_org && idSalon == ms_org) ||
           (!auteur_jid && !ms_org);
-console.log(idSalon);
-        console.log(ms_org);
+
         if (match) {
           ovl.ev.off("messages.upsert", listener);
           if (timer) clearTimeout(timer);
