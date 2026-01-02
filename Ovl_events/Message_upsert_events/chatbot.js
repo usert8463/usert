@@ -43,7 +43,7 @@ async function chatbot(
       {
         params: {
           auth_token: "25qsdt8c",
-          texte: texte,
+          text: texte,
           user_id: auteur_Message
         },
       }
