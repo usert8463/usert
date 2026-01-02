@@ -51,6 +51,7 @@ async function chatbot(
 
     const data = response.data;
 
+    console.log(data)
     if (data?.texte) {
       return repondre(data.texte);
     }
