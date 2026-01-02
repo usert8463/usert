@@ -38,22 +38,28 @@ async function chatbot(
 
     if (!(localActif || globalActif)) return;
 
-    const response = await axios.get(
+    await axios.get(
       'https://c1877.webapi.ai/cmc/user_message',
       {
         params: {
           auth_token: "25qsdt8c",
           text: texte,
           user_id: auteur_Message
-        },
+        }
+      }
+    );
+
+    const response = await axios.get(
+      'https://api-ovl.koyeb.app/response',
+      {
+        params: { user_id: auteur_Message }
       }
     );
 
     const data = response.data;
 
-    console.log(data)
-    if (data?.texte) {
-      return repondre(data.texte);
+    if (data?.text) {
+      return repondre(data.text);
     }
 
   } catch (err) {
@@ -62,3 +68,4 @@ async function chatbot(
 }
 
 module.exports = chatbot;
+
