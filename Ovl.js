@@ -83,7 +83,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       generateHighQualityLinkPreview: true,
       shouldSyncHistoryMessage: () => false,
       syncFullHistory: false,
-      userDevicesCache: new Map(),
       cachedGroupMetadata: async jid => groupCache.get(jid),
       getMessage: async key => {
         const msg = getMessage(key.id)
