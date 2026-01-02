@@ -38,40 +38,25 @@ async function chatbot(
 
     if (!(localActif || globalActif)) return;
 
-    const prompt = `Tu es un assistant intelligent appelé OVL.
-Ton créateur se nomme Ainz.
-Répond clairement, précisément et chaleureusement.
-Répond toujours dans la langue du message.
-Message :
-"${texte}"`;
-
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent?key=${config.GEMINI_API_KEY}`,
+    const response = await axios.get(
+      'https://c1877.webapi.ai/cmc/user_message',
       {
-        contents: [
-          {
-            parts: [{ text: prompt }],
-          },
-        ],
-      },
-      {
-        headers: { 'Content-Type': 'application/json' },
+        params: {
+          auth_token: "25qsdt8c",
+          texte: texte,
+          user_id: auteur_Message
+        },
       }
     );
 
     const data = response.data;
 
-    if (data?.candidates?.length > 0) {
-      const reponseTexte =
-        data.candidates[0]?.content?.parts?.[0]?.text || "";
-
-      if (reponseTexte) {
-        return repondre(reponseTexte);
-      }
+    if (data?.texte) {
+      return repondre(data.texte);
     }
 
   } catch (err) {
-    console.error("Erreur chatbot Gemini :", err.message);
+    console.error("Erreur chatbot WebAI :", err.message);
   }
 }
 
