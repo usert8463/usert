@@ -10,6 +10,5 @@ module.exports = {
   STICKER_PACK_NAME: process.env.STICKER_PACK_NAME || "ᴀɪɴᴢ🔅✨",
   STICKER_AUTHOR_NAME: process.env.STICKER_AUTHOR_NAME || "ᴏᴠʟ-ᴍᴅ-ᴠ𝟸",
   DATABASE: process.env.DATABASE,
-  NOM_BOT: process.env.NOM_BOT || "🤖 OVL-MD BOT V2",
-  GEMINI_API_KEY: process.env.GEMINI_API_KEY
+  NOM_BOT: process.env.NOM_BOT || "🤖 OVL-MD BOT V2"
 };
