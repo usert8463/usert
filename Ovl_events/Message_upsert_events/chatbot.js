@@ -24,7 +24,7 @@ async function chatbot(
     const globalActif = verif_Groupe ? conf.chatbot_gc === 'oui' : conf.chatbot_pm === 'oui'
     if (!(localActif || globalActif)) return
 
-    const uniqueId = `${ms_org}/${auteur_Message}`
+    const uniqueId = `${ms_org.split('@')[0]}_${auteur_Message.split('@')[0]}`;
 
     const response = await axios.get('https://uta-f1kg.onrender.com/chatbot', {
       params: {
