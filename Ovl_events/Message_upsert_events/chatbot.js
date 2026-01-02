@@ -45,7 +45,7 @@ async function chatbot(
         text: texte
       }
     })
-
+console.log(response.data)
     if (response.data?.text) return repondre(response.data.text)
 
   } catch (err) {
