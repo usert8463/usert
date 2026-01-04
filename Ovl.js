@@ -72,10 +72,10 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(
           state.keys,
-          pino({ level: 'silent' }).child({ level: 'silent' })
+          pino({ level: 'debug' }).child({ level: 'debug' })
         )
       },
-      logger: pino({ level: 'silent' }),
+      logger: pino({ level: 'debug' }),
       browser: Browsers.ubuntu('Chrome'),
       printQRInTerminal: false,
       keepAliveIntervalMs: 10000,
