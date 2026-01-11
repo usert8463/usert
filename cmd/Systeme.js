@@ -171,7 +171,7 @@ ovlcmd(
     desc: "Met à jour le bot automatiquement.",
     alias: ["maj"]
   },
-  async (ms_org, ovl, { repondre, prenium_id }) => {
+  async (ms_org, ovl, { repondre, prenium_id, ms }) => {
     try {
       if (!prenium_id) {
         return ovl.sendMessage(
