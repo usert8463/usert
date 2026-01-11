@@ -51,7 +51,6 @@ async function connection_update(con, ovl, main, startNextSession = null) {
       break;
 
     case "open":
-      await ovl.sendPresenceUpdate("available");
       console.log(`
 ╭─────────────────╮
 │                  
