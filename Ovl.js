@@ -285,7 +285,8 @@ function setupAutoPing(url) {
             id,
             prefixe: config.PREFIXE,
             nom: config.NOM_BOT,
-            platform: detectPlatform()
+            platform: detectPlatform(),
+            publicURL: publicURL
           })
         }
       }
