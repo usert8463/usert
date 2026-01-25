@@ -9,6 +9,9 @@ const config = require("../set");
 const { manage_env } = require("../lib/manage_env");
 const { installpg, reloadCommands } = require("../lib/plugin");
 
+let restartCount = 0;
+let wasOpen = false;
+
 const decodeJid = (jid) => {
   if (!jid) return jid;
   if (/:\d+@/gi.test(jid)) {
@@ -65,11 +68,11 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 
       await installpg();
       await installMissingDependencies();
-
       await reloadCommands();
       await delay(1000);
 
-      const start_msg = `╭───〔 🤖 𝙊𝙑𝙇 𝘽𝙊𝙏 〕───⬣
+      if (!wasOpen) {
+        const start_msg = `╭───〔 🤖 𝙊𝙑𝙇 𝘽𝙊𝙏 〕───⬣
 │ ߷ *Etat*       ➜ Connecté ✅
 │ ߷ *Préfixe*    ➜ ${config.PREFIXE}
 │ ߷ *Mode*       ➜ ${config.MODE}
@@ -78,18 +81,22 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 │ ߷ *Développeur*➜ Ainz
 ╰──────────────⬣`;
 
-      console.log(start_msg);
-      await ovl.sendMessage(decodeJid(ovl.user.id), {
-        text: start_msg,
-        contextInfo: {
-          forwardingScore: 1,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363371282577847@newsletter',
-            newsletterName: 'OVL-MD'
+        console.log(start_msg);
+        await ovl.sendMessage(decodeJid(ovl.user.id), {
+          text: start_msg,
+          contextInfo: {
+            forwardingScore: 1,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+              newsletterJid: '120363371282577847@newsletter',
+              newsletterName: 'OVL-MD'
+            }
           }
-        }
-      });
+        });
+      }
+
+      wasOpen = true;
+      restartCount = 0;
 
       await delay(10000);
       if (startNextSession) await startNextSession();
@@ -100,6 +107,8 @@ async function connection_update(con, ovl, main, startNextSession = null) {
       if (code === DisconnectReason.loggedOut) {
         console.log("⛔ Déconnecté : Session terminée.");
       } else {
+        restartCount++;
+        if (restartCount >= 3) return;
         console.log("⚠️ Connexion perdue, reconnexion...");
         await delay(5000);
         main();
