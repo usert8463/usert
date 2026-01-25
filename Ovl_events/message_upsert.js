@@ -72,7 +72,7 @@ async function message_upsert(m, ovl) {
 if (infos_Groupe.participants) {
   infos_Groupe.participants = infos_Groupe.participants.map(p => ({
     ...p,
-    jid: p.jid || p.phoneNumber
+    jid: p.phoneNumber
   }));
 }
     const nom_Groupe = infos_Groupe.subject || "";
