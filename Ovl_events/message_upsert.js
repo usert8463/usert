@@ -38,7 +38,6 @@ async function isBanned(type, id) {
 
 async function message_upsert(m, ovl) {
   try {
-    console.log(m);
     if (m.type !== 'notify') return;
     const ms = m.messages?.[0];
     if (!ms?.message) return;
@@ -136,7 +135,6 @@ if (infos_Groupe.participants) {
 
     const provenance = verif_Groupe ? `👥 ${nom_Groupe}` : `💬 Privé`;
 
-    console.log(ms);
     console.log(
       `\n━━━━━━━[ OVL-LOG-MSG ]━━━━━━\n` +
       `👤 Auteur  : ${nom_Auteur_Message} (${auteur_Message})\n` +
