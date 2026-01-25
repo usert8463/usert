@@ -68,6 +68,13 @@ async function message_upsert(m, ovl) {
 
     const verif_Groupe = ms_org.endsWith("@g.us");
     const infos_Groupe = verif_Groupe ? await ovl.groupMetadata(ms_org) : {};
+    
+if (infos_Groupe.participants) {
+  infos_Groupe.participants = infos_Groupe.participants.map(p => ({
+    ...p,
+    jid: p.jid || p.phoneNumber
+  }));
+}
     const nom_Groupe = infos_Groupe.subject || "";
     const mbre_membre = verif_Groupe ? infos_Groupe.participants : [];
     const groupe_Admin = mbre_membre.filter(p => p.admin).map(p => p.jid);
