@@ -1022,7 +1022,7 @@ ovlcmd(
     desc: "Enregistre les contacts de tous les membres du groupe dans un fichier VCF",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { verif_Groupe, prenium_id, ms } = cmd_options;
+    const { verif_Groupe, infos_Groupe, prenium_id, ms } = cmd_options;
 
     try {
       if (!verif_Groupe)
@@ -1031,7 +1031,7 @@ ovlcmd(
       if (!prenium_id)
         return ovl.sendMessage(ms_org, { text: "Vous n'avez pas les permissions requises pour utiliser cette commande." }, { quoted: ms });
 
-      const groupMetadata = await ovl.groupMetadata(ms_org).catch(() => null);
+      const groupMetadata = infos_Groupe;
       if (!groupMetadata || !groupMetadata.participants)
         return ovl.sendMessage(ms_org, { text: "Échec de la récupération des métadonnées du groupe ou de la liste des participants." }, { quoted: ms });
 
