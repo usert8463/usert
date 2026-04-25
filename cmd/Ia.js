@@ -16,11 +16,11 @@ ovlcmd(
         }
 
         const prompt = arg.join(" ");
-        const apiUrl = `https://ab-chatgpt4o.abrahamdw882.workers.dev/?q=${encodeURIComponent(prompt)}`;
+        const apiUrl = `https://eliteprotech-apis.zone.id/chatgpt?prompt=${encodeURIComponent(prompt)}`;
 
         try {
             const result = await axios.get(apiUrl);
-            const responseText = result.data?.data || "Erreur de réponse de l\'API.";
+            const responseText = result.data?.response || "Erreur de réponse de l\'API.";
             return repondre(responseText);
         } catch (error) {
             console.error("Erreur GPT :", error);
@@ -30,40 +30,41 @@ ovlcmd(
 );
 
 ovlcmd(
-    {
-        nom_cmd: "dalle",
-        classe: "IA",
-        react: "🎨",
-        desc: "Génère des images avec DALLE-E."
-    },
-    async (ms_org, ovl, cmd_options) => {
-        const { arg, ms, repondre } = cmd_options;
+{
+    nom_cmd: "dalle",
+    classe: "IA",
+    react: "🎨",
+    desc: "Génère des images avec DALLE-E."
+},
+async (ms_org, ovl, cmd_options) => {
+    const { arg, ms, repondre } = cmd_options;
 
-        if (!arg.length) {
-            return repondre("Veuillez entrer une description pour générer une image.");
-        }
-
-        try {
-            const prompt = arg.join(" ");
-            const apiUrl = `https://api-toxxic.zone.id/api/ai/ai4chat?prompt=${encodeURIComponent(prompt)}`;
-            const result = await axios.get(apiUrl);
-
-            return ovl.sendMessage(
-                ms_org,
-                {
-                    image: { url: result.data.data },
-                    caption: "```Powered By OVL-MD-V2```"
-                },
-                { quoted: ms }
-            );
-
-        } catch (err) {
-            console.error("Erreur DALLE :", err);
-            return repondre("Erreur lors de la génération de l'image. Réessayez plus tard.");
-        }
+    if (!arg.length) {
+        return repondre("Veuillez entrer une description pour générer une image.");
     }
-);
 
+    try {
+        const prompt = arg.join(" ");
+        const apiUrl = `https://eliteprotech-apis.zone.id/imagine?prompt=${encodeURIComponent(prompt)}`;
+
+        const result = await axios.get(apiUrl, {
+            responseType: "arraybuffer"
+        });
+
+        return ovl.sendMessage(
+            ms_org,
+            {
+                image: result.data,
+                caption: "```Powered By OVL-MD-V2```"
+            },
+            { quoted: ms }
+        );
+
+    } catch (err) {
+        console.error("Erreur DALLE :", err);
+        return repondre("Erreur lors de la génération de l'image. Réessayez plus tard.");
+    }
+});
 
 ovlcmd(
     {
@@ -108,7 +109,7 @@ ovlcmd(
         }
 
         const prompt = arg.join(" ");
-        const apiUrl = `https://eliteprotech-apis.zone.id/copilot?message=${encodeURIComponent(prompt)}`;
+        const apiUrl = `https://eliteprotech-apis.zone.id/copilot?q=${encodeURIComponent(prompt)}`;
 
         try {
             const result = await axios.get(apiUrl);
