@@ -172,7 +172,11 @@ async function startSecondarySessions() {
   for (const { numero, session_id } of sessions) {
     if (sessionsActives.size >= MAX_SESSIONS) break
 
-    if (!sessionsActives.has(numero) && !sessionsSupprimees.has(numero)) {
+    if (sessionsSupprimees.has(numero)) {
+      sessionsSupprimees.delete(numero)
+    }
+
+    if (!sessionsActives.has(numero)) {
       try {
         await startGenericSession({
           numero,
