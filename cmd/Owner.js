@@ -912,7 +912,7 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     try {
-      const { arg, ms, prenium_id, repondre } = cmd_options;
+       const { arg, ms, prenium_id, repondre, auteur_Message } = cmd_options;
 
       if (!prenium_id) {
         return ovl.sendMessage(ms_org, { text: "🚫 Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
@@ -923,7 +923,7 @@ ovlcmd(
       }
 
       const session_id = arg[0].trim();
-      console.log(`🌀 Tentative de connexion par ${ms.sender} pour session_id: ${session_id}`);
+      console.log(`🌀 Tentative de connexion par ${auteur_Message} pour session_id: ${session_id}`);
 
       const result = await saveSecondSession(session_id);
       if (!result) {
