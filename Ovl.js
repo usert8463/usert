@@ -30,6 +30,7 @@ const { getSecondAllSessions } = require('./DataBase/connect')
 const MAX_SESSIONS = 15
 const sessionsActives = new Set()
 const instancesSessions = new Map()
+const sessionsSupprimees = new Set()
 
 console.info = function (...args) {
   const msg = args.join(' ')
@@ -57,6 +58,11 @@ console.error = function (...args) {
 }
 
 async function startGenericSession({ numero, isPrincipale = false, sessionId = null }) {
+  if (sessionsSupprimees.has(numero)) {
+    console.log(`⛔ Session ${numero} bloquée (supprimée)`)
+    return null
+  }
+
   try {
     const instanceId = isPrincipale ? 'principale' : numero
     const sessionData = await get_session(sessionId)
@@ -64,8 +70,8 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     await restaureAuth(instanceId, sessionData.creds, sessionData.keys)
 
     const { state, saveCreds } = await useMultiFileAuthState(`./auth/${instanceId}`)
-    const { version } = await fetchLatestBaileysVersion();
-    
+    const { version } = await fetchLatestBaileysVersion()
+
     const ovl = makeWASocket({
       version,
       auth: {
@@ -97,7 +103,11 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       connection_update(
         con,
         ovl,
-        () => startGenericSession({ numero, isPrincipale, sessionId }),
+        () => {
+          if (!sessionsSupprimees.has(numero)) {
+            return startGenericSession({ numero, isPrincipale, sessionId })
+          }
+        },
         isPrincipale ? async () => await startSecondarySessions() : undefined
       )
     )
@@ -112,22 +122,19 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     instancesSessions.set(numero, ovl)
     sessionsActives.add(numero)
 
-    console.log(
-      `✅ Session ${isPrincipale ? 'principale' : 'secondaire ' + numero} démarrée`
-    )
+    console.log(`✅ Session ${isPrincipale ? 'principale' : 'secondaire ' + numero} démarrée`)
 
     return ovl
   } catch (err) {
-    console.error(
-      `❌ Erreur session ${isPrincipale ? 'principale' : numero} :`,
-      err.message
-    )
+    console.error(`❌ Erreur session ${isPrincipale ? 'principale' : numero} :`, err.message)
     return null
   }
 }
 
 async function stopSession(numero) {
   if (!instancesSessions.has(numero)) return
+
+  sessionsSupprimees.add(numero)
 
   const ovl = instancesSessions.get(numero)
 
@@ -165,7 +172,7 @@ async function startSecondarySessions() {
   for (const { numero, session_id } of sessions) {
     if (sessionsActives.size >= MAX_SESSIONS) break
 
-    if (!sessionsActives.has(numero)) {
+    if (!sessionsActives.has(numero) && !sessionsSupprimees.has(numero)) {
       try {
         await startGenericSession({
           numero,
@@ -184,10 +191,7 @@ function surveillerNouvellesSessions() {
     try {
       await startSecondarySessions()
     } catch (err) {
-      console.error(
-        '❌ Erreur vérification sessions secondaires :',
-        err.message
-      )
+      console.error('❌ Erreur vérification sessions secondaires :', err.message)
     }
   }, 10000)
 }
