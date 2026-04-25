@@ -27,7 +27,7 @@ const {
 } = require('./Ovl_events')
 const { getSecondAllSessions } = require('./DataBase/connect')
 
-const MAX_SESSIONS = 15
+const MAX_SESSIONS = 30
 const sessionsActives = new Set()
 const instancesSessions = new Map()
 const sessionsSupprimees = new Set()
