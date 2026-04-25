@@ -273,34 +273,37 @@ ovlcmd(
 );
 
 ovlcmd(
-    {
-        nom_cmd: "toprank",
-        classe: "Fun",
-        react: "🥇",
-        desc: "Voir les meilleurs utilisateurs"
-    },
-    async (ms_org, ovl, cmd_options) => {
-        const topUsers = await Ranks.findAll({
-            order: [['messages', 'DESC']],
-            limit: 10
-        });
+{
+    nom_cmd: "toprank",
+    classe: "Fun",
+    react: "🥇",
+    desc: "Voir les meilleurs utilisateurs"
+},
+async (ms_org, ovl, cmd_options) => {
+    const topUsers = await Ranks.findAll({
+        order: [['messages', 'DESC']],
+        limit: 10
+    });
 
-        if (topUsers.length === 0) {
-            return ovl.sendMessage(ms_org, { text: "Aucune donnée disponible pour le moment." }, { quoted: cmd_options.ms });
-        }
-
-        let rankMessage = `
-╭──🏆 *OVL-TOP-RANK* 🏆──╮`;
-
-        topUsers.forEach((user, index) => {
-            const position = `${index + 1}`.padStart(2, " ");
-            rankMessage += `┃ ${position}. 🏷️ *Nom :* ${user.name || "Inconnu"}
-┃    ✉️ *Messages :* ${user.messages}
-┃    🔰 *Niveau :* ${user.level} (${levels[user.level - 1]?.name || "OVL-GOD-LEVEL"})\n┃\n`;
-        });
-rankMessage += `╰───────────────────╯`;
-        await ovl.sendMessage(ms_org, { text: rankMessage }, { quoted: cmd_options.ms });
+    if (topUsers.length === 0) {
+        return ovl.sendMessage(ms_org, { text: "Aucune donnée disponible pour le moment." }, { quoted: cmd_options.ms });
     }
+
+    let rankMessage = `🏆 *TOP 10 UTILISATEURS* 🏆\n\n`;
+
+    topUsers.forEach((user, index) => {
+        const medals = ["🥇", "🥈", "🥉"];
+        const badge = medals[index] || "🔹";
+
+        rankMessage += `${badge} *#${index + 1}* — ${user.name || "Inconnu"}\n`;
+        rankMessage += `   💬 Messages : ${user.messages}\n`;
+        rankMessage += `   🎯 Niveau : ${user.level} (${levels[user.level - 1]?.name || "OVL-GOD-LEVEL"})\n\n`;
+    });
+
+    rankMessage += `✨ _Continuez à discuter pour monter dans le classement !_`;
+
+    await ovl.sendMessage(ms_org, { text: rankMessage }, { quoted: cmd_options.ms });
+}
 );
 
 ovlcmd(
