@@ -23,7 +23,6 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org, id
       const deletionTime = new Date().toISOString().substr(11, 8);
 
       if (!deletedMsg.key.fromMe) {
-
         function modeMatch(mode) {
           return antideleteConfig.includes(mode);
         }
@@ -40,49 +39,41 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org, id
         if (!shouldSend) return;
 
         if (antideleteConfig.includes('-org')) {
-
           if (antideleteConfig.includes('status') && jid.endsWith('status@broadcast')) {
-
             await ovl.sendMessage(id_bot, {
-              text: `> OVL-MD-V2-ANTIDELETE\n`,
-              forward: deletedMsg
+              forward: deletedMsg,
+              contextInfo: {
+                externalAdReply: { title: 'OVL-MD-V2-ANTIDELETE' }
+              }
             }, { quoted: deletedMsg });
-
           } else {
-
             if (!ms_org) return;
 
             const contenu = deletedMsg.message;
             const typeMsg = Object.keys(contenu || {})[0];
 
             if (typeMsg === 'conversation' || typeMsg === 'extendedTextMessage') {
-
-              const texte =
-                contenu?.conversation ||
-                contenu?.extendedTextMessage?.text ||
-                '📝 Message supprimé (vide)';
-
+              const texte = contenu?.conversation || contenu?.extendedTextMessage?.text || '📝 Message supprimé (vide)';
               await ovl.sendMessage(ms_org, {
-                text: `> OVL-MD-V2-ANTIDELETE\n${texte}`
+                text: texte,
+                contextInfo: {
+                  externalAdReply: { title: 'OVL-MD-V2-ANTIDELETE' }
+                }
               }, { quoted: deletedMsg });
-
             } else {
-
               await ovl.sendMessage(ms_org, {
-                text: `> OVL-MD-V2-ANTIDELETE`,
-                forward: deletedMsg
+                forward: deletedMsg,
+                contextInfo: {
+                  externalAdReply: { title: 'OVL-MD-V2-ANTIDELETE' }
+                }
               }, { quoted: deletedMsg });
             }
           }
-
         } else {
-
           const provenance = isGroup
             ? `👥 Groupe : ${(await ovl.groupMetadata(jid)).subject}`
             : `📩 Chat : @${jid.split('@')[0]}`;
-
           const header = `
-> OVL-MD-V2-ANTIDELETE
 ✨ OVL-MD ANTI-DELETE MSG ✨
 👤 Envoyé par : @${sender.split('@')[0]}
 ❌ Supprimé par : @${auteur_Message.split('@')[0]}
