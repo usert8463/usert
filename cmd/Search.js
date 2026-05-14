@@ -84,13 +84,9 @@ async (ms_org, ovl, cmd_options) => {
     const searchTerm = arg.join(" ");
 
     if (!searchTerm) {
-        return ovl.sendMessage(
-            ms_org,
-            {
-                text: "Veuillez fournir un terme de recherche.\nExemple : img chat"
-            },
-            { quoted: ms }
-        );
+        return ovl.sendMessage(ms_org, {
+            text: "Exemple : img luffy"
+        }, { quoted: ms });
     }
 
     try {
@@ -98,46 +94,47 @@ async (ms_org, ovl, cmd_options) => {
         const results = await searchImages(searchTerm);
 
         if (!results || results.length === 0) {
-            return ovl.sendMessage(
-                ms_org,
-                {
-                    text: "Aucune image trouvée."
-                },
-                { quoted: ms }
-            );
+            return ovl.sendMessage(ms_org, {
+                text: "Aucune image trouvée."
+            }, { quoted: ms });
         }
 
-        const images = results.slice(0, 5);
+        let sent = 0;
+        let i = 0;
 
-        for (const img of images) {
+        while (sent < 5 && i < results.length) {
+
+            const imgUrl = results[i].image;
+            i++;
+
+            if (!imgUrl) continue;
 
             try {
 
-                await ovl.sendMessage(
-                    ms_org,
-                    {
-                        image: { url: img.image },
-                        caption: "```Powered By OVL-MD-v2```"
-                    },
-                    { quoted: ms }
-                );
+                await ovl.sendMessage(ms_org, {
+                    image: { url: imgUrl },
+                    caption: "```Powered By OVL-MD-v2```"
+                }, { quoted: ms });
 
-            } catch (err) {
-                console.log("Erreur image :", err);
+                sent++;
+
+            } catch (e) {
+                // on ignore silencieusement et on continue
+                continue;
             }
+        }
+
+        if (sent === 0) {
+            await ovl.sendMessage(ms_org, {
+                text: "❌ Impossible d'envoyer les images."
+            }, { quoted: ms });
         }
 
     } catch (err) {
 
-        console.error(err);
-
-        ovl.sendMessage(
-            ms_org,
-            {
-                text: "Erreur lors de la recherche."
-            },
-            { quoted: ms }
-        );
+        await ovl.sendMessage(ms_org, {
+            text: "Erreur lors de la recherche."
+        }, { quoted: ms });
     }
 });
 
