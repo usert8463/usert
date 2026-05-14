@@ -11,31 +11,60 @@ const fs = require("fs");
 
 async function searchImages(query) {
     try {
-        const url = `https://duckduckgo.com/?q=${encodeURIComponent(query)}&iax=images&ia=images`;
 
-        // Récupération du token vqd
-        const res = await axios.get(url);
-        const token = res.data.match(/vqd='(.*?)'/)?.[1];
-
-        if (!token) throw new Error("Token introuvable");
-
-        // Recherche images
-        const imgRes = await axios.get("https://duckduckgo.com/i.js", {
-            params: {
-                l: "fr-fr",
-                o: "json",
-                q: query,
-                vqd: token,
-                f: ",,,",
-                p: "1"
-            },
-            headers: {
-                referer: "https://duckduckgo.com/",
-                "user-agent": "Mozilla/5.0"
+        const res = await axios.get(
+            "https://duckduckgo.com/",
+            {
+                params: { q: query },
+                headers: {
+                    "user-agent": "Mozilla/5.0"
+                }
             }
-        });
+        );
 
-        return imgRes.data.results;
+        const html = res.data;
+
+        let token;
+
+        const patterns = [
+            /vqd="(.*?)"/,
+            /vqd='(.*?)'/,
+            /"vqd":"(.*?)"/,
+            /vqd=([\d-]+)\&/
+        ];
+
+        for (const pattern of patterns) {
+            const match = html.match(pattern);
+            if (match) {
+                token = match[1];
+                break;
+            }
+        }
+
+        if (!token) {
+            throw new Error("Impossible de récupérer le token");
+        }
+
+        const imgRes = await axios.get(
+            "https://duckduckgo.com/i.js",
+            {
+                params: {
+                    q: query,
+                    vqd: token,
+                    o: "json",
+                    l: "fr-fr",
+                    p: "1"
+                },
+                headers: {
+                    referer: "https://duckduckgo.com/",
+                    "user-agent": "Mozilla/5.0",
+                    "x-requested-with": "XMLHttpRequest"
+                }
+            }
+        );
+
+        return imgRes.data.results || [];
+
     } catch (e) {
         console.error(e);
         return [];
