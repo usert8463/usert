@@ -1,6 +1,5 @@
 const { ovlcmd, cmd } = require("../lib/ovlcmd");
 const axios = require('axios');
-const gis = require("g-i-s");
 const wiki = require('wikipedia');
 const { Sticker, StickerTypes } = require("wa-sticker-formatter");
 const config = require('../set');
@@ -10,45 +9,108 @@ const { ytdl } = require("../lib/dl");
 const acrcloud = require("acrcloud");
 const fs = require("fs");
 
-ovlcmd(
-    {
-        nom_cmd: "img",
-        classe: "Search",
-        react: "🔍",
-        desc: "Recherche d'images"
-    },
-    async (ms_org, ovl, cmd_options) => {
-      const { arg, ms } = cmd_options;
-        const searchTerm = arg.join(" ");
-        if (!searchTerm) {
-            return ovl.sendMessage(ms_org, { text: "Veuillez fournir un terme de recherche, par exemple : img ovl-Md" },  { quoted: ms });
-        }
+async function searchImages(query) {
+    try {
+        const url = `https://duckduckgo.com/?q=${encodeURIComponent(query)}&iax=images&ia=images`;
 
-        gis(searchTerm, async (error, results) => {
-            if (error) {
-                console.error("Erreur lors de la recherche d'images:", error);
-                return ovl.sendMessage(ms_org, { text: "Erreur lors de la recherche d'images." }, { quoted: ms });
-            }
+        // Récupération du token vqd
+        const res = await axios.get(url);
+        const token = res.data.match(/vqd='(.*?)'/)?.[1];
 
-            const images = results.slice(0, 5);
-            if (images.length === 0) {
-                return ovl.sendMessage(ms_org, { text: "Aucune image trouvée pour ce terme de recherche." }, { quoted: ms });
-            }
+        if (!token) throw new Error("Token introuvable");
 
-            for (const image of images) {
-                try {
-                    await ovl.sendMessage(ms_org, {
-                        image: { url: image.url },
-                        caption: `\`\`\`Powered By OVL-MD-v2\`\`\``
-                    }, { quoted: ms });
-                } catch (err) {
-                    console.error("Erreur lors de l'envoi de l'image:", err);
-                }
+        // Recherche images
+        const imgRes = await axios.get("https://duckduckgo.com/i.js", {
+            params: {
+                l: "fr-fr",
+                o: "json",
+                q: query,
+                vqd: token,
+                f: ",,,",
+                p: "1"
+            },
+            headers: {
+                referer: "https://duckduckgo.com/",
+                "user-agent": "Mozilla/5.0"
             }
         });
-    }
-);
 
+        return imgRes.data.results;
+    } catch (e) {
+        console.error(e);
+        return [];
+    }
+}
+
+ovlcmd(
+{
+    nom_cmd: "img",
+    classe: "Search",
+    react: "🔍",
+    desc: "Recherche d'images"
+},
+async (ms_org, ovl, cmd_options) => {
+
+    const { arg, ms } = cmd_options;
+    const searchTerm = arg.join(" ");
+
+    if (!searchTerm) {
+        return ovl.sendMessage(
+            ms_org,
+            {
+                text: "Veuillez fournir un terme de recherche.\nExemple : img chat"
+            },
+            { quoted: ms }
+        );
+    }
+
+    try {
+
+        const results = await searchImages(searchTerm);
+
+        if (!results || results.length === 0) {
+            return ovl.sendMessage(
+                ms_org,
+                {
+                    text: "Aucune image trouvée."
+                },
+                { quoted: ms }
+            );
+        }
+
+        const images = results.slice(0, 5);
+
+        for (const img of images) {
+
+            try {
+
+                await ovl.sendMessage(
+                    ms_org,
+                    {
+                        image: { url: img.image },
+                        caption: "```Powered By OVL-MD-v2```"
+                    },
+                    { quoted: ms }
+                );
+
+            } catch (err) {
+                console.log("Erreur image :", err);
+            }
+        }
+
+    } catch (err) {
+
+        console.error(err);
+
+        ovl.sendMessage(
+            ms_org,
+            {
+                text: "Erreur lors de la recherche."
+            },
+            { quoted: ms }
+        );
+    }
+});
 
 ovlcmd(
     {
