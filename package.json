@@ -23,7 +23,6 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "file-type": "^16.5.3",
-    "g-i-s": "^2.1.7",
     "gtts": "^0.2.1",
     "javascript-obfuscator": "^4.1.1",
     "pg": "^8.16.3",
