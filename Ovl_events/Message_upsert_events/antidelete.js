@@ -11,15 +11,28 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org, id
     if (!isModeValide) return;
 
     if (mtype === 'protocolMessage') {
+
       const deletedMsgKey = ms.message.protocolMessage;
       if (!deletedMsgKey?.key?.id) return;
 
       const deletedMsg = getMessage(deletedMsgKey.key.id);
       if (!deletedMsg) return;
 
-      const jid = deletedMsg.key.remoteJidAlt || deletedMsg.key.remoteJid;
-      const isGroup = jid?.endsWith('@g.us');
-      const sender = isGroup ? (deletedMsg.key.participant || deletedMsg.participant) : jid;
+      const realJid = deletedMsg.key.remoteJid;
+      const altJid = deletedMsg.key.remoteJidAlt || '';
+
+      const jid = altJid || realJid;
+
+      const isStatus = realJid === 'status@broadcast';
+      const isGc = realJid.endsWith('@g.us');
+      const isPm = !isStatus && altJid.endsWith('@s.whatsapp.net');
+
+      const isGroup = isGc;
+
+      const sender = isGroup
+        ? (deletedMsg.key.participant || deletedMsg.participant)
+        : jid;
+
       const deletionTime = new Date().toISOString().substr(11, 8);
 
       if (!deletedMsg.key.fromMe) {
@@ -29,19 +42,21 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org, id
         }
 
         const shouldSend =
-          (modeMatch('gc') && jid.endsWith('@g.us')) ||
-          (modeMatch('pm') && jid.endsWith('@s.whatsapp.net')) ||
-          (modeMatch('status') && jid.endsWith('status@broadcast')) ||
+          (modeMatch('gc') && isGc) ||
+          (modeMatch('pm') && isPm) ||
+          (modeMatch('status') && isStatus) ||
           modeMatch('all') ||
-          (modeMatch('pm/gc') && (jid.endsWith('@g.us') || jid.endsWith('@s.whatsapp.net'))) ||
-          (modeMatch('pm/status') && (jid.endsWith('status@broadcast') || jid.endsWith('@s.whatsapp.net'))) ||
-          (modeMatch('gc/status') && (jid.endsWith('@g.us') || jid.endsWith('status@broadcast')));
+          (modeMatch('pm/gc') && (isGc || isPm)) ||
+          (modeMatch('pm/status') && (isStatus || isPm)) ||
+          (modeMatch('gc/status') && (isGc || isStatus));
 
         if (!shouldSend) return;
 
         const provenance = isGroup
-          ? `👥 Groupe : ${(await ovl.groupMetadata(jid)).subject}`
-          : `📩 Chat : @${jid.split('@')[0]}`;
+          ? `👥 Groupe : ${(await ovl.groupMetadata(realJid)).subject}`
+          : isStatus
+            ? `📢 Status WhatsApp`
+            : `📩 Chat : @${jid.split('@')[0]}`;
 
         const header = `
 ✨ OVL-MD ANTI-DELETE MSG ✨
@@ -96,6 +111,7 @@ ${provenance}
         }
       }
     }
+
   } catch (err) {
     console.error('❌ Une erreur est survenue dans antidelete :', err);
   }
