@@ -3,7 +3,7 @@ const { WA_CONF } = require('../../DataBase/wa_conf');
 async function dl_status(ovl, ms_org, ms, id_bot) {
     const settings = await WA_CONF.findOne({ where: { id: '1' } });
     if (settings) {
-        if (ms_org === "status@broadcast" && settings.dl_status === "oui") {
+        if (ms.remoteJid === "status@broadcast" && settings.dl_status === "oui") {
             try {
                 if (ms.message.extendedTextMessage) {
                     await ovl.sendMessage(id_bot, { text: ms.message.extendedTextMessage.text }, { quoted: ms });
