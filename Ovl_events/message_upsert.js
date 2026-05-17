@@ -83,7 +83,7 @@ if (infos_Groupe.participants) {
       ? await getJid(decodeJid(ms.key.participantAlt || ms.key.participant), ms_org, ovl)
       : ms.key.fromMe
         ? id_Bot
-        : decodeJid(ms.key.participantPn || ms.key.participant || ms.key.remoteJidAlt || ms.key.senderPn || ms.key.remoteJid);
+        : decodeJid(ms.key.remoteJidAlt || ms.key.participantAlt || ms.key.participant || ms.key.senderPn || ms.key.remoteJid);
 
     const msg_Repondu = ms.message?.[mtype]?.contextInfo?.quotedMessage;
     const quote = ms.message?.[mtype]?.contextInfo;
