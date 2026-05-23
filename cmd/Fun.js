@@ -233,29 +233,61 @@ ovlcmd(
     },
     async (ms_org, ovl, cmd_options) => {
         const { arg, auteur_Message, getJid, auteur_Msg_Repondu, ms } = cmd_options;
-         
-        const userIdl = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteur_Msg_Repondu || auteur_Message;
+
+        console.log("📥 [rank] Commande reçue");
+        console.log("📨 args:", arg);
+
+        const userIdl =
+            (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) ||
+            auteur_Msg_Repondu ||
+            auteur_Message;
+
+        console.log("🧩 userId brut (userIdl):", userIdl);
+
         const userId = await getJid(userIdl, ms_org, ovl);
+        console.log("🔎 userId final:", userId);
+
         let pp;
         try {
-            pp = await ovl.profilePictureUrl(userId, 'image');
-        } catch {
-            pp = 'https://files.catbox.moe/ulwqtr.jpg';
+            console.log("🖼️ Récupération photo de profil...");
+            pp = await ovl.profilePictureUrl(userId, "image");
+            console.log("✅ PP récupérée:", pp);
+        } catch (err) {
+            console.log("⚠️ Erreur PP, fallback utilisé");
+            console.log("❌ Détail erreur PP:", err);
+            pp = "https://files.catbox.moe/ulwqtr.jpg";
         }
-    
+
+        console.log("📊 Fetch all users (ranking)...");
         const allUsers = await Ranks.findAll({
-            order: [['messages', 'DESC']]
+            order: [["messages", "DESC"]]
         });
 
+        console.log("👥 Total users:", allUsers.length);
+
         const user = await Ranks.findOne({ where: { id: userId } });
+
         if (!user) {
-            return ovl.sendMessage(ms_org, { text: "Vous n'avez pas encore de rang. Commencez à interagir pour en obtenir un !" }, { quoted: ms });
+            console.log("❌ Utilisateur introuvable en DB:", userId);
+
+            return ovl.sendMessage(
+                ms_org,
+                { text: "Vous n'avez pas encore de rang. Commencez à interagir pour en obtenir un !" },
+                { quoted: ms }
+            );
         }
 
+        console.log("✅ User trouvé:", user.id);
+
         const { name, level, exp, messages } = user;
+
         const nextLevelExp = levels[level] ? levels[level + 1].expRequired : "Max";
         const rankPosition = allUsers.findIndex(u => u.id === userId) + 1;
+
+        console.log("🏅 rankPosition:", rankPosition);
+
         const totalUsers = allUsers.length;
+
         const message = `╭───🏆 *OVL-RANK* 🏆───╮
 ┃ 🏷️ *Nom :* ${name || "Inconnu"}
 ┃ 🥇 *Classement :* ${rankPosition}/${totalUsers}
@@ -265,10 +297,29 @@ ovlcmd(
 ┃ ✉️ *Messages :* ${messages}
 ╰──────────────────╯`;
 
-        await ovl.sendMessage(ms_org, {
-            image: { url: pp },
-            caption: message,
-        }, { quoted: ms });
+        console.log("📤 Envoi du message rank...");
+
+        try {
+            await ovl.sendMessage(
+                ms_org,
+                {
+                    image: { url: pp },
+                    caption: message,
+                },
+                { quoted: ms }
+            );
+
+            console.log("✅ Message rank envoyé avec succès");
+        } catch (err) {
+            console.log("❌ ERREUR SENDMESSAGE RANK:");
+            console.log(err);
+
+            await ovl.sendMessage(
+                ms_org,
+                { text: "❌ Erreur lors de l'affichage du rank." },
+                { quoted: ms }
+            );
+        }
     }
 );
 
