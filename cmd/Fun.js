@@ -233,47 +233,29 @@ ovlcmd(
     },
     async (ms_org, ovl, cmd_options) => {
         const { arg, auteur_Message, getJid, auteur_Msg_Repondu, ms } = cmd_options;
-
-        const userIdl =
-            (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) ||
-            auteur_Msg_Repondu ||
-            auteur_Message;
-
+         
+        const userIdl = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteur_Msg_Repondu || auteur_Message;
         const userId = await getJid(userIdl, ms_org, ovl);
-
-        const defaultPP = "https://files.catbox.moe/ulwqtr.jpg";
         let pp;
-
         try {
-            pp = await ovl.profilePictureUrl(userId, "image");
+            pp = await ovl.profilePictureUrl(userId, 'image');
         } catch {
-            pp = defaultPP;
+            pp = 'https://files.catbox.moe/ulwqtr.jpg';
         }
-
-        if (!pp || typeof pp !== "string" || !pp.startsWith("http")) {
-            pp = defaultPP;
-        }
-
+    
         const allUsers = await Ranks.findAll({
-            order: [["messages", "DESC"]]
+            order: [['messages', 'DESC']]
         });
 
         const user = await Ranks.findOne({ where: { id: userId } });
-
         if (!user) {
-            return ovl.sendMessage(
-                ms_org,
-                { text: "Vous n'avez pas encore de rang. Commencez à interagir pour en obtenir un !" },
-                { quoted: ms }
-            );
+            return ovl.sendMessage(ms_org, { text: "Vous n'avez pas encore de rang. Commencez à interagir pour en obtenir un !" }, { quoted: ms });
         }
 
         const { name, level, exp, messages } = user;
-
         const nextLevelExp = levels[level] ? levels[level + 1].expRequired : "Max";
         const rankPosition = allUsers.findIndex(u => u.id === userId) + 1;
         const totalUsers = allUsers.length;
-
         const message = `╭───🏆 *OVL-RANK* 🏆───╮
 ┃ 🏷️ *Nom :* ${name || "Inconnu"}
 ┃ 🥇 *Classement :* ${rankPosition}/${totalUsers}
