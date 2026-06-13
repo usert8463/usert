@@ -1185,3 +1185,46 @@ ovlcmd(
     );
   }
 );
+
+ovlcmd(
+  {
+    nom_cmd: "tonotevideo",
+    classe: "Conversion",
+    react: "🎥",
+    desc: "Convertit une vidéo en note vidéo WhatsApp",
+	alias: ["notevid", "nvid"]
+  },
+  async (ms_org, ovl, { msg_Repondu, ms }) => {
+    if (!msg_Repondu || !msg_Repondu.videoMessage) {
+      return ovl.sendMessage(
+        ms_org,
+        { text: "❌ Répondez à une vidéo." },
+        { quoted: ms }
+      );
+    }
+
+    try {
+      const videoPath = await ovl.dl_save_media_ms(
+        msg_Repondu.videoMessage
+      );
+
+      await ovl.sendMessage(
+        ms_org,
+        {
+          video: fs.readFileSync(videoPath),
+          ptv: true
+        },
+        { quoted: ms }
+      );
+
+      fs.unlinkSync(videoPath);
+
+    } catch (err) {
+      await ovl.sendMessage(
+        ms_org,
+        { text: `❌ Erreur : ${err.message}` },
+        { quoted: ms }
+      );
+    }
+  }
+);
