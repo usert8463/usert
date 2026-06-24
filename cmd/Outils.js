@@ -647,7 +647,7 @@ ovlcmd(
                 (vue_Unique_Message.videoMessage && vue_Unique_Message.videoMessage.viewOnce !== true) ||
                 (vue_Unique_Message.audioMessage && vue_Unique_Message.audioMessage.viewOnce !== true)
             ) {
-                return repondre("Ce message n'est pas un message en vue unique.");
+                return // repondre("Ce message n'est pas un message en vue unique.");
             }
         }
 
@@ -680,11 +680,11 @@ ovlcmd(
                 );
 
             } else {
-                return repondre("Ce type de message en vue unique n'est pas pris en charge.");
+                return //repondre("Ce type de message en vue unique n'est pas pris en charge.");
             }
         } catch (_error) {
             console.error("❌ Erreur lors de l'envoi du message en vue unique :", _error.message || _error);
-            return repondre("Une erreur est survenue lors du traitement du message.");
+            return // repondre("Une erreur est survenue lors du traitement du message.");
         }
     }
 );
