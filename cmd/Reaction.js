@@ -4,216 +4,502 @@ const fs = require("fs");
 const child_process = require("child_process");
 
 const reactions = {
-    embeter: "https://api.waifu.pics/sfw/bully",
-    caliner: "https://api.waifu.pics/sfw/cuddle",
-    pleurer: "https://api.waifu.pics/sfw/cry",
-    enlacer: "https://api.waifu.pics/sfw/hug",
-    awoo: "https://api.waifu.pics/sfw/awoo",
-    embrasser: "https://api.waifu.pics/sfw/kiss",
-    lecher: "https://api.waifu.pics/sfw/lick",
-    tapoter: "https://api.waifu.pics/sfw/pat",
-    sourire_fier: "https://api.waifu.pics/sfw/smug",
-    assommer: "https://api.waifu.pics/sfw/bonk",
-    lancer: "https://api.waifu.pics/sfw/yeet",
-    rougir: "https://api.waifu.pics/sfw/blush",
-    sourire: "https://api.waifu.pics/sfw/smile",
-    saluer: "https://api.waifu.pics/sfw/wave",
-    highfive: "https://api.waifu.pics/sfw/highfive",
-    tenir_main: "https://api.waifu.pics/sfw/handhold",
-    croquer: "https://api.waifu.pics/sfw/nom",
-    mordre: "https://api.waifu.pics/sfw/bite",
-    sauter: "https://api.waifu.pics/sfw/glomp",
-    gifler: "https://api.waifu.pics/sfw/slap",
-    tuer: "https://api.waifu.pics/sfw/kill",
-    coup_de_pied: "https://api.waifu.pics/sfw/kick",
-    heureux: "https://api.waifu.pics/sfw/happy",
-    clin_doeil: "https://api.waifu.pics/sfw/wink",
-    pousser: "https://api.waifu.pics/sfw/poke",
-    danser: "https://api.waifu.pics/sfw/dance",
-    gene: "https://api.waifu.pics/sfw/cringe",
-};
-
-function generateCaption(nom_cmd, auteur, cible) {
-    const captions = {
-    embeter: {
-        withTarget: `@${auteur} embête @${cible} !`,
-        withoutTarget: `@${auteur} embête tout le monde !`,
+    embrasser: {
+        endpoint: "kiss",
+        caption: "embrasse"
     },
     caliner: {
-        withTarget: `@${auteur} câline @${cible} !`,
-        withoutTarget: `@${auteur} veut câliner tout le monde !`,
-    },
-    pleurer: {
-        withTarget: `@${auteur} pleure sur l'épaule de @${cible} !`,
-        withoutTarget: `@${auteur} pleure tout seul...`,
-    },
-    enlacer: {
-        withTarget: `@${auteur} enlace chaleureusement @${cible} !`,
-        withoutTarget: `@${auteur} veut enlacer tout le monde !`,
-    },
-    awoo: {
-        withTarget: `@${auteur} fait "Awoo" à @${cible} !`,
-        withoutTarget: `@${auteur} hurle "Awoo" pour tout le monde !`,
-    },
-    embrasser: {
-        withTarget: `@${auteur} embrasse tendrement @${cible} !`,
-        withoutTarget: `@${auteur} veut embrasser tout le monde !`,
-    },
-    lecher: {
-        withTarget: `@${auteur} lèche @${cible} !`,
-        withoutTarget: `@${auteur} veut lécher tout le monde !`,
+        endpoint: "cuddle",
+        caption: "fait un câlin à"
     },
     tapoter: {
-        withTarget: `@${auteur} tapote la tête de @${cible} !`,
-        withoutTarget: `@${auteur} veut tapoter la tête de tout le monde !`,
+        endpoint: "pat",
+        caption: "tapote"
     },
-    sourire_fier: {
-        withTarget: `@${auteur} adresse un sourire fier à @${cible} !`,
-        withoutTarget: `@${auteur} affiche un sourire fier devant tout le monde !`,
+    frapper: {
+        endpoint: "slap",
+        caption: "gifle"
     },
-    assommer: {
-        withTarget: `@${auteur} assomme @${cible} avec une massue !`,
-        withoutTarget: `@${auteur} est prêt à assommer tout le monde !`,
-    },
-    lancer: {
-        withTarget: `@${auteur} lance @${cible} loin dans les airs !`,
-        withoutTarget: `@${auteur} veut lancer quelqu'un dans les airs !`,
-    },
-    rougir: {
-        withTarget: `@${auteur} rougit en regardant @${cible} !`,
-        withoutTarget: `@${auteur} rougit devant tout le monde !`,
-    },
-    sourire: {
-        withTarget: `@${auteur} sourit joyeusement à @${cible} !`,
-        withoutTarget: `@${auteur} sourit joyeusement à tout le monde !`,
-    },
-    saluer: {
-        withTarget: `@${auteur} salue chaleureusement @${cible} !`,
-        withoutTarget: `@${auteur} salue tout le monde !`,
-    },
-    highfive: {
-        withTarget: `@${auteur} donne un high-five à @${cible} !`,
-        withoutTarget: `@${auteur} veut donner un high-five à tout le monde !`,
-    },
-    tenir_main: {
-        withTarget: `@${auteur} tient la main de @${cible} !`,
-        withoutTarget: `@${auteur} veut tenir la main de tout le monde !`,
-    },
-    croquer: {
-        withTarget: `@${auteur} croque un morceau de @${cible} !`,
-        withoutTarget: `@${auteur} veut croquer tout le monde !`,
+    donner_un_coup: {
+        endpoint: "punch",
+        caption: "donne un coup à"
     },
     mordre: {
-        withTarget: `@${auteur} mord @${cible} !`,
-        withoutTarget: `@${auteur} veut mordre tout le monde !`,
-    },
-    sauter: {
-        withTarget: `@${auteur} saute sur @${cible} avec enthousiasme !`,
-        withoutTarget: `@${auteur} veut sauter sur tout le monde !`,
-    },
-    gifler: {
-        withTarget: `@${auteur} gifle @${cible} !`,
-        withoutTarget: `@${auteur} veut gifler tout le monde !`,
-    },
-    tuer: {
-        withTarget: `@${auteur} tue @${cible} !`,
-        withoutTarget: `@${auteur} est prêt à tuer tout le monde !`,
-    },
-    coup_de_pied: {
-        withTarget: `@${auteur} donne un coup de pied à @${cible} !`,
-        withoutTarget: `@${auteur} veut donner un coup de pied à tout le monde !`,
-    },
-    heureux: {
-        withTarget: `@${auteur} est heureux en voyant @${cible} !`,
-        withoutTarget: `@${auteur} est heureux avec tout le monde !`,
-    },
-    clin_doeil: {
-        withTarget: `@${auteur} fait un clin d'œil à @${cible} !`,
-        withoutTarget: `@${auteur} fait un clin d'œil à tout le monde !`,
+        endpoint: "bite",
+        caption: "mord"
     },
     pousser: {
-        withTarget: `@${auteur} pousse doucement @${cible} !`,
-        withoutTarget: `@${auteur} veut pousser tout le monde !`,
+        endpoint: "kick",
+        caption: "donne un coup de pied à"
+    },
+    calin_oreiller: {
+        endpoint: "lappillow",
+        caption: "utilise comme oreiller"
+    },
+    tenir_la_main: {
+        endpoint: "handhold",
+        caption: "tient la main de"
+    },
+    faire_un_bisou: {
+        endpoint: "peck",
+        caption: "fait un bisou à"
+    },
+    faire_un_baiser: {
+        endpoint: "blowkiss",
+        caption: "envoie un baiser à"
+    },
+    lecher: {
+        endpoint: "lick",
+        caption: "lèche"
+    },
+    chatouiller: {
+        endpoint: "tickle",
+        caption: "chatouille"
+    },
+    mignon: {
+        endpoint: "nya",
+        caption: "fait nya nya avec"
+    },
+    rougir: {
+        endpoint: "blush",
+        caption: "rougit devant"
+    },
+    sourire: {
+        endpoint: "smile",
+        caption: "sourit à"
+    },
+    rire: {
+        endpoint: "laugh",
+        caption: "rit avec"
+    },
+    heureux: {
+        endpoint: "happy",
+        caption: "est heureux avec"
+    },
+    triste: {
+        endpoint: "cry",
+        caption: "pleure avec"
+    },
+    dormir: {
+        endpoint: "sleep",
+        caption: "dort avec"
+    },
+    penser: {
+        endpoint: "think",
+        caption: "réfléchit à propos de"
+    },
+    confus: {
+        endpoint: "confused",
+        caption: "est confus à propos de"
+    },
+    choque: {
+        endpoint: "shocked",
+        caption: "est choqué par"
+    },
+    ennuyer: {
+        endpoint: "bored",
+        caption: "s'ennuie avec"
+    },
+    bouder: {
+        endpoint: "pout",
+        caption: "boude contre"
+    },
+    jaloux: {
+        endpoint: "angry",
+        caption: "se fâche contre"
+    },
+    faire_un_doigt: {
+        endpoint: "nope",
+        caption: "refuse catégoriquement"
+    },
+    hausser_les_epaules: {
+        endpoint: "shrug",
+        caption: "hausse les épaules devant"
+    },
+    saluer: {
+        endpoint: "wave",
+        caption: "salue"
+    },
+    applaudir: {
+        endpoint: "clap",
+        caption: "applaudit"
+    },
+    taper_dans_la_main: {
+        endpoint: "highfive",
+        caption: "fait un high-five à"
+    },
+    serrer_la_main: {
+        endpoint: "handshake",
+        caption: "serre la main de"
+    },
+    saluer_militaire: {
+        endpoint: "salute",
+        caption: "fait un salut militaire à"
+    },
+    hocher_la_tete: {
+        endpoint: "nod",
+        caption: "hoche la tête devant"
+    },
+    secouer: {
+        endpoint: "shake",
+        caption: "secoue"
     },
     danser: {
-        withTarget: `@${auteur} danse joyeusement avec @${cible} !`,
-        withoutTarget: `@${auteur} danse pour tout le monde !`,
+        endpoint: "dance",
+        caption: "danse avec"
     },
-    gene: {
-        withTarget: `@${auteur} est gêné en regardant @${cible} !`,
-        withoutTarget: `@${auteur} est gêné devant tout le monde !`,
+    tourner: {
+        endpoint: "spin",
+        caption: "tourne autour de"
     },
+    courir: {
+        endpoint: "run",
+        caption: "court avec"
+    },
+    agiter_la_queue: {
+        endpoint: "wag",
+        caption: "agite la queue devant"
+    },
+    faire_un_signe: {
+        endpoint: "wink",
+        caption: "fait un clin d'œil à"
+    },
+    bailler: {
+        endpoint: "yawn",
+        caption: "baille devant"
+    },
+    regarder: {
+        endpoint: "stare",
+        caption: "fixe"
+    },
+    regarder_avec_mepris: {
+        endpoint: "smug",
+        caption: "regarde avec arrogance"
+    },
+    faire_facepalm: {
+        endpoint: "facepalm",
+        caption: "fait un facepalm à cause de"
+    },
+    faire_le_tableflip: {
+        endpoint: "tableflip",
+        caption: "retourne la table à cause de"
+    },
+    frapper_dans_le_vide: {
+        endpoint: "shoot",
+        caption: "tire dans la direction de"
+    },
+    lancer: {
+        endpoint: "yeet",
+        caption: "lance"
+    },
+    jeter_un_sort: {
+        endpoint: "bonk",
+        caption: "donne un bonk à"
+    },
+    nourrir: {
+        endpoint: "feed",
+        caption: "nourrit"
+    },
+    porter: {
+        endpoint: "carry",
+        caption: "porte"
+    },
+    poser_sur_le_mur: {
+        endpoint: "kabedon",
+        caption: "coince contre le mur"
+    },
+    tapoter_la_tete: {
+        endpoint: "poke",
+        caption: "pique"
+    },
+    donner_un_coup_de_poing: {
+        endpoint: "punch",
+        caption: "frappe"
+    },
+    faire_un_calin: {
+        endpoint: "hug",
+        caption: "fait un gros câlin à"
+    },
+    faire_un_coucou: {
+        endpoint: "bleh",
+        caption: "tire la langue à"
+    },
+    tirer_la_langue: {
+        endpoint: "bleh",
+        caption: "tire la langue à"
+    },
+    montrer_le_pouce: {
+        endpoint: "thumbsup",
+        caption: "fait un pouce levé à"
+    },
+    faire_un_bisou_sur_le_front: {
+        endpoint: "peck",
+        caption: "embrasse doucement"
+    },
+    faire_un_calin_doux: {
+        endpoint: "cuddle",
+        caption: "serre tendrement dans ses bras"
+    },
+    applaudir_fort: {
+        endpoint: "clap",
+        caption: "applaudit fortement"
+    },
+    dormir_sur: {
+        endpoint: "lurk",
+        caption: "observe discrètement"
+    },
+    faire_semblant: {
+        endpoint: "teehee",
+        caption: "rigole discrètement avec"
+    },
+    reflechir: {
+        endpoint: "think",
+        caption: "réfléchit avec"
+    },
+    faire_non: {
+        endpoint: "nope",
+        caption: "dit non à"
+    },
+    etre_fier: {
+        endpoint: "smug",
+        caption: "se montre fier devant"
+    },
+    etre_surpris: {
+        endpoint: "shocked",
+        caption: "est surpris par"
+    },
+    etre_fache: {
+        endpoint: "angry",
+        caption: "est énervé contre"
+    },
+    etre_triste: {
+        endpoint: "cry",
+        caption: "est triste avec"
+    },
+    etre_heureux: {
+        endpoint: "happy",
+        caption: "est heureux avec"
+    },
+    faire_un_saut: {
+        endpoint: "yeet",
+        caption: "fait un mouvement brusque vers"
+    },
+    saluer_joyeusement: {
+        endpoint: "wave",
+        caption: "salue joyeusement"
+    },
+    faire_un_calme: {
+        endpoint: "sleep",
+        caption: "se repose avec"
+    }
 };
 
+const aliases = {
+    embeter: "poke",
+    caliner: "cuddle",
+    embrasser: "kiss",
+    pleurer: "cry",
+    rire: "laugh",
+    dormir: "sleep",
+    danser: "dance",
+    frapper: "slap",
+    mordre: "bite",
+    pousser: "kick",
+    tapoter: "pat",
+    sourire: "smile",
+    saluer: "wave",
+    applaudir: "clap",
+    regarder: "stare",
+    penser: "think",
+    nourrir: "feed",
+    porter: "carry",
+    courir: "run",
+    secouer: "shake",
+    rougir: "blush",
+    bouder: "pout",
+    choquer: "shocked",
+    calin: "hug",
+    highfive: "highfive",
+    handshake: "handshake",
+    clinoeil: "wink",
+    bailler: "yawn",
+    facepalm: "facepalm",
+    tableflip: "tableflip",
+    bonk: "bonk",
+    tirer: "shoot",
+    lancer: "yeet"
+};
 
-    return captions[nom_cmd]
-        ? cible
-            ? captions[nom_cmd].withTarget
-            : captions[nom_cmd].withoutTarget
-        : `@${auteur} a exécuté ${nom_cmd} !`;
+const headers = {
+    "User-Agent": "OVL-MD-V2/1.0"
+};
+
+function generateCaption(action, auteur, cible) {
+    return `@${auteur.split("@")[0]} ${action} @${cible.split("@")[0]}`;
 }
 
-async function giftovidbuff (gifbuff) {
-    const tempGif = `temp_${Date.now()}.gif`;
-    const tempMp4 = `temp_${Date.now()}.mp4`;
+function giftovidbuff(gifBuffer, outputPath) {
+    return new Promise((resolve, reject) => {
+        const inputPath = `${outputPath}.gif`;
 
-    fs.writeFileSync(tempGif, gifbuff);
+        fs.writeFileSync(inputPath, gifBuffer);
 
-    await new Promise((resolve, reject) => {
         child_process.exec(
-            `ffmpeg -i ${tempGif} -movflags faststart -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" ${tempMp4}`,
-            (err) => {
-                if (err) reject(err);
-                else resolve();
+            `ffmpeg -y -i "${inputPath}" -movflags faststart -pix_fmt yuv420p "${outputPath}"`,
+            (error) => {
+                fs.unlink(inputPath, () => {});
+
+                if (error) {
+                    reject(error);
+                    return;
+                }
+
+                resolve(outputPath);
             }
         );
     });
-
-    const videoBuffer = fs.readFileSync(tempMp4);
-    fs.unlinkSync(tempGif);
-    fs.unlinkSync(tempMp4);
-
-    return videoBuffer;
 }
 
-function addReactionCommand(nom_cmd, url) {
+function getTargetJid(auteur_Message, getJid, auteur_Msg_Repondu) {
+    if (auteur_Msg_Repondu) {
+        return auteur_Msg_Repondu;
+    }
+
+    const mention = auteur_Message.match(/@(\d+)/);
+
+    if (mention) {
+        return getJid(`${mention[1]}@s.whatsapp.net`);
+    }
+
+    return null;
+}
+
+async function addReactionCommand(commandName, endpoint, captionText) {
     ovlcmd(
         {
-            nom_cmd,
-            classe: "Réaction",
-            react: "💬",
-            desc: `Réaction de type ${nom_cmd}`,
+            nom_cmd: commandName,
+            categorie: "reactions",
+            reaction: "🎭"
         },
-        async (ms_org, ovl, cmd_options) => {
-            const { arg, auteur_Message, getJid, auteur_Msg_Repondu, repondre, ms } = cmd_options;
-            const cbl = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
-            const cible = await getJid(cbl, ms_org, ovl);
+        async (ms, arg, repondre, auteur_Message, getJid, auteur_Msg_Repondu) => {
             try {
-                const response = await axios.get(url);
-                const gifUrl = response.data.url;
-                const gifBuffer = (await axios.get(gifUrl, { responseType: "arraybuffer" })).data;
-                const videoBuffer = await giftovidbuff(gifBuffer);
-                const reactionCaption = generateCaption(nom_cmd, auteur_Message?.split('@')[0], cible?.split('@')[0]);
-
-                await ovl.sendMessage(
-                    ms_org,
-                    {
-                        video: videoBuffer,
-                        gifPlayback: true,
-                        caption: reactionCaption,
-                        mentions: cible ? [auteur_Message, cible] : [auteur_Message],
-                    },
-                    { quoted: ms }
+                const cible = getTargetJid(
+                    auteur_Message,
+                    getJid,
+                    auteur_Msg_Repondu
                 );
+
+                if (!cible) {
+                    return repondre(
+                        `Mentionne quelqu'un ou réponds à son message pour utiliser .${commandName}`
+                    );
+                }
+
+                const apiUrl = `https://nekos.best/api/v2/${endpoint}`;
+
+                const response = await axios.get(apiUrl, {
+                    headers
+                });
+
+                const gifUrl = response.data?.results?.[0]?.url;
+
+                if (!gifUrl) {
+                    return repondre(
+                        "Aucune animation n'a été trouvée pour cette réaction."
+                    );
+                }
+
+                const gifResponse = await axios.get(gifUrl, {
+                    responseType: "arraybuffer",
+                    headers
+                });
+
+                const outputPath = `/tmp/ovl_${Date.now()}_${Math.random()
+                    .toString(36)
+                    .slice(2)}.mp4`;
+
+                await giftovidbuff(
+                    Buffer.from(gifResponse.data),
+                    outputPath
+                );
+
+                const auteur = ms.key.participant || ms.key.remoteJid;
+
+                const caption = generateCaption(
+                    captionText,
+                    auteur,
+                    cible
+                );
+
+                await ms.sendMessage(
+                    ms.key.remoteJid,
+                    {
+                        video: fs.readFileSync(outputPath),
+                        gifPlayback: true,
+                        caption,
+                        mentions: [auteur, cible]
+                    },
+                    {
+                        quoted: ms
+                    }
+                );
+
+                fs.unlink(outputPath, () => {});
             } catch (error) {
-                console.error(`Erreur avec la commande ${nom_cmd}:`, error);
-                await repondre({ text: "Désolé, une erreur est survenue lors du traitement de la commande." });
+                console.error(
+                    `Erreur réaction ${commandName}:`,
+                    error.message
+                );
+
+                repondre(
+                    "Une erreur est survenue pendant la récupération de l'animation."
+                );
             }
         }
     );
 }
 
-// Ajout des commandes dynamiques
-for (const [nom_cmd, url] of Object.entries(reactions)) {
-    addReactionCommand(nom_cmd, url);
-}
+const registeredEndpoints = new Set();
+
+(async () => {
+    for (const [commandName, reaction] of Object.entries(reactions)) {
+        const key = `${commandName}:${reaction.endpoint}`;
+
+        if (registeredEndpoints.has(key)) {
+            continue;
+        }
+
+        registeredEndpoints.add(key);
+
+        await addReactionCommand(
+            commandName,
+            reaction.endpoint,
+            reaction.caption
+        );
+    }
+
+    for (const [commandName, endpoint] of Object.entries(aliases)) {
+        const reaction = Object.values(reactions).find(
+            item => item.endpoint === endpoint
+        );
+
+        if (!reaction) {
+            continue;
+        }
+
+        const key = `${commandName}:${endpoint}`;
+
+        if (registeredEndpoints.has(key)) {
+            continue;
+        }
+
+        registeredEndpoints.add(key);
+
+        await addReactionCommand(
+            commandName,
+            endpoint,
+            reaction.caption
+        );
+    }
+})();
+
