@@ -431,8 +431,8 @@ async function addReactionCommand(commandName, endpoint, captionText) {
                     cible
                 );
 
-                await ms.sendMessage(
-                    ms.key.remoteJid,
+                await ovl.sendMessage(
+                    ms_org,
                     {
                         video: fs.readFileSync(outputPath),
                         gifPlayback: true,
