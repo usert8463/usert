@@ -296,33 +296,12 @@ const reactions = {
 
 const aliases = {
     embeter: "poke",
-    caliner: "cuddle",
-    embrasser: "kiss",
     pleurer: "cry",
-    rire: "laugh",
-    dormir: "sleep",
-    danser: "dance",
-    frapper: "slap",
-    mordre: "bite",
-    pousser: "kick",
-    tapoter: "pat",
-    sourire: "smile",
-    saluer: "wave",
-    applaudir: "clap",
-    regarder: "stare",
-    penser: "think",
-    nourrir: "feed",
-    porter: "carry",
-    courir: "run",
-    secouer: "shake",
-    rougir: "blush",
-    bouder: "pout",
+    clinoeil: "wink",
     choquer: "shocked",
     calin: "hug",
     highfive: "highfive",
     handshake: "handshake",
-    clinoeil: "wink",
-    bailler: "yawn",
     facepalm: "facepalm",
     tableflip: "tableflip",
     bonk: "bonk",
@@ -336,6 +315,10 @@ const headers = {
     "User-Agent": "OVL-MD-V2/1.0"
 };
 
+function isGroupJid(jid) {
+    return typeof jid === "string" && jid.endsWith("@g.us");
+}
+
 function generateCaption(action, auteur, cible) {
     return `@${auteur.split("@")[0]} ${action} @${cible.split("@")[0]}`;
 }
@@ -344,11 +327,30 @@ function generateGroupCaption(action, auteur) {
     return `@${auteur.split("@")[0]} ${action} tout le monde`;
 }
 
+function getTargetJid(auteur_Message, getJid, auteur_Msg_Repondu) {
+    if (auteur_Msg_Repondu) {
+        return auteur_Msg_Repondu;
+    }
+
+    const mention = auteur_Message.match(/@(\d+)/);
+
+    if (mention) {
+        return getJid(`${mention[1]}@s.whatsapp.net`);
+    }
+
+    return null;
+}
+
 function convertGifToVideo(gifBuffer, outputPath) {
     return new Promise((resolve, reject) => {
         const inputPath = `${outputPath}.gif`;
 
-        fs.writeFileSync(inputPath, gifBuffer);
+        try {
+            fs.writeFileSync(inputPath, gifBuffer);
+        } catch (error) {
+            reject(error);
+            return;
+        }
 
         const command = [
             "ffmpeg",
@@ -375,22 +377,27 @@ function convertGifToVideo(gifBuffer, outputPath) {
     });
 }
 
-function getTargetJid(auteur_Message, getJid, auteur_Msg_Repondu) {
-    if (auteur_Msg_Repondu) {
-        return auteur_Msg_Repondu;
+async function getReactionMedia(endpoint) {
+    const apiUrl = `https://nekos.best/api/v2/${endpoint}`;
+
+    const response = await axios.get(apiUrl, {
+        headers,
+        timeout: 15000
+    });
+
+    const gifUrl = response.data?.results?.[0]?.url;
+
+    if (!gifUrl) {
+        throw new Error("Aucune animation trouvée");
     }
 
-    const mention = auteur_Message.match(/@(\d+)/);
+    const gifResponse = await axios.get(gifUrl, {
+        responseType: "arraybuffer",
+        headers,
+        timeout: 30000
+    });
 
-    if (mention) {
-        return getJid(`${mention[1]}@s.whatsapp.net`);
-    }
-
-    return null;
-}
-
-function isGroupJid(jid) {
-    return jid && jid.endsWith("@g.us");
+    return Buffer.from(gifResponse.data);
 }
 
 async function addReactionCommand(commandName, endpoint, captionText) {
@@ -405,7 +412,6 @@ async function addReactionCommand(commandName, endpoint, captionText) {
             ovl,
             {
                 ms,
-                arg,
                 repondre,
                 auteur_Message,
                 getJid,
@@ -415,54 +421,28 @@ async function addReactionCommand(commandName, endpoint, captionText) {
             let outputPath = null;
 
             try {
-                const isSaluerCommand =
-                    commandName === "saluer" ||
-                    aliases[commandName] === "wave";
-
                 const auteur = ms.key.participant || ms.key.remoteJid;
 
                 const cible = getTargetJid(
-                    auteur_Message,
+                    auteur_Message || "",
                     getJid,
                     auteur_Msg_Repondu
                 );
 
-                if (!cible && isSaluerCommand && isGroupJid(ms_org)) {
-                    const apiUrl = `https://nekos.best/api/v2/${endpoint}`;
-
-                    const response = await axios.get(apiUrl, {
-                        headers,
-                        timeout: 15000
-                    });
-
-                    const gifUrl = response.data?.results?.[0]?.url;
-
-                    if (!gifUrl) {
-                        return repondre(
-                            "Aucune animation n'a été trouvée pour cette réaction."
-                        );
-                    }
-
-                    const gifResponse = await axios.get(gifUrl, {
-                        responseType: "arraybuffer",
-                        headers,
-                        timeout: 30000
-                    });
+                if (!cible && isGroupJid(ms_org)) {
+                    const gifBuffer = await getReactionMedia(endpoint);
 
                     outputPath = `/tmp/ovl_${Date.now()}_${Math.random()
                         .toString(36)
                         .slice(2)}.mp4`;
 
-                    await convertGifToVideo(
-                        Buffer.from(gifResponse.data),
-                        outputPath
-                    );
+                    await convertGifToVideo(gifBuffer, outputPath);
 
                     const metadata = await ovl.groupMetadata(ms_org);
 
-                    const mentions = metadata.participants.map(
-                        participant => participant.id
-                    );
+                    const mentions = metadata.participants
+                        .map(participant => participant.id)
+                        .filter(Boolean);
 
                     const caption = generateGroupCaption(
                         captionText,
@@ -491,35 +471,13 @@ async function addReactionCommand(commandName, endpoint, captionText) {
                     );
                 }
 
-                const apiUrl = `https://nekos.best/api/v2/${endpoint}`;
-
-                const response = await axios.get(apiUrl, {
-                    headers,
-                    timeout: 15000
-                });
-
-                const gifUrl = response.data?.results?.[0]?.url;
-
-                if (!gifUrl) {
-                    return repondre(
-                        "Aucune animation n'a été trouvée pour cette réaction."
-                    );
-                }
-
-                const gifResponse = await axios.get(gifUrl, {
-                    responseType: "arraybuffer",
-                    headers,
-                    timeout: 30000
-                });
+                const gifBuffer = await getReactionMedia(endpoint);
 
                 outputPath = `/tmp/ovl_${Date.now()}_${Math.random()
                     .toString(36)
                     .slice(2)}.mp4`;
 
-                await convertGifToVideo(
-                    Buffer.from(gifResponse.data),
-                    outputPath
-                );
+                await convertGifToVideo(gifBuffer, outputPath);
 
                 const caption = generateCaption(
                     captionText,
@@ -545,7 +503,7 @@ async function addReactionCommand(commandName, endpoint, captionText) {
                     error.message
                 );
 
-                repondre(
+                await repondre(
                     "Une erreur est survenue pendant la récupération de l'animation."
                 );
             } finally {
