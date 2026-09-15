@@ -327,7 +327,9 @@ const aliases = {
     tableflip: "tableflip",
     bonk: "bonk",
     tirer: "shoot",
-    lancer: "yeet"
+    lancer: "yeet",
+    coup: "punch",
+    frapper_poing: "punch"
 };
 
 const headers = {
@@ -338,25 +340,38 @@ function generateCaption(action, auteur, cible) {
     return `@${auteur.split("@")[0]} ${action} @${cible.split("@")[0]}`;
 }
 
-function giftovidbuff(gifBuffer, outputPath) {
+function generateGroupCaption(action, auteur) {
+    return `@${auteur.split("@")[0]} ${action} tout le monde`;
+}
+
+function convertGifToVideo(gifBuffer, outputPath) {
     return new Promise((resolve, reject) => {
         const inputPath = `${outputPath}.gif`;
 
         fs.writeFileSync(inputPath, gifBuffer);
 
-        child_process.exec(
-            `ffmpeg -y -i "${inputPath}" -movflags faststart -pix_fmt yuv420p "${outputPath}"`,
-            (error) => {
-                fs.unlink(inputPath, () => {});
+        const command = [
+            "ffmpeg",
+            "-y",
+            "-i", `"${inputPath}"`,
+            "-vf", `"scale=trunc(iw/2)*2:trunc(ih/2)*2"`,
+            "-c:v", "libx264",
+            "-preset", "veryfast",
+            "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
+            `"${outputPath}"`
+        ].join(" ");
 
-                if (error) {
-                    reject(error);
-                    return;
-                }
+        child_process.exec(command, (error) => {
+            fs.unlink(inputPath, () => {});
 
-                resolve(outputPath);
+            if (error) {
+                reject(error);
+                return;
             }
-        );
+
+            resolve(outputPath);
+        });
     });
 }
 
@@ -374,6 +389,10 @@ function getTargetJid(auteur_Message, getJid, auteur_Msg_Repondu) {
     return null;
 }
 
+function isGroupJid(jid) {
+    return jid && jid.endsWith("@g.us");
+}
+
 async function addReactionCommand(commandName, endpoint, captionText) {
     ovlcmd(
         {
@@ -381,13 +400,90 @@ async function addReactionCommand(commandName, endpoint, captionText) {
             categorie: "reactions",
             reaction: "🎭"
         },
-        async (ms_org, ovl, { ms , arg, repondre, auteur_Message, getJid, auteur_Msg_Repondu }) => {
+        async (
+            ms_org,
+            ovl,
+            {
+                ms,
+                arg,
+                repondre,
+                auteur_Message,
+                getJid,
+                auteur_Msg_Repondu
+            }
+        ) => {
+            let outputPath = null;
+
             try {
+                const isSaluerCommand =
+                    commandName === "saluer" ||
+                    aliases[commandName] === "wave";
+
+                const auteur = ms.key.participant || ms.key.remoteJid;
+
                 const cible = getTargetJid(
                     auteur_Message,
                     getJid,
                     auteur_Msg_Repondu
                 );
+
+                if (!cible && isSaluerCommand && isGroupJid(ms_org)) {
+                    const apiUrl = `https://nekos.best/api/v2/${endpoint}`;
+
+                    const response = await axios.get(apiUrl, {
+                        headers,
+                        timeout: 15000
+                    });
+
+                    const gifUrl = response.data?.results?.[0]?.url;
+
+                    if (!gifUrl) {
+                        return repondre(
+                            "Aucune animation n'a été trouvée pour cette réaction."
+                        );
+                    }
+
+                    const gifResponse = await axios.get(gifUrl, {
+                        responseType: "arraybuffer",
+                        headers,
+                        timeout: 30000
+                    });
+
+                    outputPath = `/tmp/ovl_${Date.now()}_${Math.random()
+                        .toString(36)
+                        .slice(2)}.mp4`;
+
+                    await convertGifToVideo(
+                        Buffer.from(gifResponse.data),
+                        outputPath
+                    );
+
+                    const metadata = await ovl.groupMetadata(ms_org);
+
+                    const mentions = metadata.participants.map(
+                        participant => participant.id
+                    );
+
+                    const caption = generateGroupCaption(
+                        captionText,
+                        auteur
+                    );
+
+                    await ovl.sendMessage(
+                        ms_org,
+                        {
+                            video: fs.readFileSync(outputPath),
+                            gifPlayback: true,
+                            caption,
+                            mentions
+                        },
+                        {
+                            quoted: ms
+                        }
+                    );
+
+                    return;
+                }
 
                 if (!cible) {
                     return repondre(
@@ -398,7 +494,8 @@ async function addReactionCommand(commandName, endpoint, captionText) {
                 const apiUrl = `https://nekos.best/api/v2/${endpoint}`;
 
                 const response = await axios.get(apiUrl, {
-                    headers
+                    headers,
+                    timeout: 15000
                 });
 
                 const gifUrl = response.data?.results?.[0]?.url;
@@ -411,19 +508,18 @@ async function addReactionCommand(commandName, endpoint, captionText) {
 
                 const gifResponse = await axios.get(gifUrl, {
                     responseType: "arraybuffer",
-                    headers
+                    headers,
+                    timeout: 30000
                 });
 
-                const outputPath = `/tmp/ovl_${Date.now()}_${Math.random()
+                outputPath = `/tmp/ovl_${Date.now()}_${Math.random()
                     .toString(36)
                     .slice(2)}.mp4`;
 
-                await giftovidbuff(
+                await convertGifToVideo(
                     Buffer.from(gifResponse.data),
                     outputPath
                 );
-
-                const auteur = ms.key.participant || ms.key.remoteJid;
 
                 const caption = generateCaption(
                     captionText,
@@ -443,8 +539,6 @@ async function addReactionCommand(commandName, endpoint, captionText) {
                         quoted: ms
                     }
                 );
-
-                fs.unlink(outputPath, () => {});
             } catch (error) {
                 console.error(
                     `Erreur réaction ${commandName}:`,
@@ -454,22 +548,24 @@ async function addReactionCommand(commandName, endpoint, captionText) {
                 repondre(
                     "Une erreur est survenue pendant la récupération de l'animation."
                 );
+            } finally {
+                if (outputPath && fs.existsSync(outputPath)) {
+                    fs.unlink(outputPath, () => {});
+                }
             }
         }
     );
 }
 
-const registeredEndpoints = new Set();
+const registeredCommands = new Set();
 
 (async () => {
     for (const [commandName, reaction] of Object.entries(reactions)) {
-        const key = `${commandName}:${reaction.endpoint}`;
-
-        if (registeredEndpoints.has(key)) {
+        if (registeredCommands.has(commandName)) {
             continue;
         }
 
-        registeredEndpoints.add(key);
+        registeredCommands.add(commandName);
 
         await addReactionCommand(
             commandName,
@@ -479,6 +575,10 @@ const registeredEndpoints = new Set();
     }
 
     for (const [commandName, endpoint] of Object.entries(aliases)) {
+        if (registeredCommands.has(commandName)) {
+            continue;
+        }
+
         const reaction = Object.values(reactions).find(
             item => item.endpoint === endpoint
         );
@@ -487,13 +587,7 @@ const registeredEndpoints = new Set();
             continue;
         }
 
-        const key = `${commandName}:${endpoint}`;
-
-        if (registeredEndpoints.has(key)) {
-            continue;
-        }
-
-        registeredEndpoints.add(key);
+        registeredCommands.add(commandName);
 
         await addReactionCommand(
             commandName,
@@ -502,4 +596,3 @@ const registeredEndpoints = new Set();
         );
     }
 })();
-
