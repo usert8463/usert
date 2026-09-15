@@ -381,7 +381,7 @@ async function addReactionCommand(commandName, endpoint, captionText) {
             categorie: "reactions",
             reaction: "🎭"
         },
-        async (ms, arg, repondre, auteur_Message, getJid, auteur_Msg_Repondu) => {
+        async (ms_org, ovl, { ms , arg, repondre, auteur_Message, getJid, auteur_Msg_Repondu }) => {
             try {
                 const cible = getTargetJid(
                     auteur_Message,
