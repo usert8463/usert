@@ -613,8 +613,8 @@ ovlcmd(
             } else {
                 return repondre("Ce type de message en vue unique n'est pas pris en charge.");
             }
-        } catch (_error) {
-            console.error("❌ Erreur lors de l'envoi du message en vue unique :", _error.message || _error);
+        } catch (error) {
+            console.error("❌ Erreur lors de l'envoi du message en vue unique :", error);
             return repondre("Une erreur est survenue lors du traitement du message.");
         }
     }
